@@ -1,18 +1,22 @@
-import styled from "styled-components";
 import { FaFilePdf } from "react-icons/fa"; // Import the PDF Icon
+import { HiPencil } from "react-icons/hi2";
+import styled from "styled-components";
+import Menus from "../../ui/Menus";
+import Modal from "../../ui/Modal";
+import Table from "../../ui/Table";
+import CreatePaperForm from "./CreatePaperForm";
 
-// Styled Components you already created
-const TableRow = styled.div`
-  display: grid;
-  grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
-  column-gap: 2.4rem;
-  align-items: center;
-  padding: 1.4rem 2.4rem;
+// const TableRow = styled.div`
+//   display: grid;
+//   grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
+//   column-gap: 2.4rem;
+//   align-items: center;
+//   padding: 1.4rem 2.4rem;
 
-  &:not(:last-child) {
-    border-bottom: 1px solid var(--color-grey-100);
-  }
-`;
+//   &:not(:last-child) {
+//     border-bottom: 1px solid var(--color-grey-100);
+//   }
+// `;
 
 const Img = styled.img`
   display: block;
@@ -84,7 +88,7 @@ function PaperRow({ paper }) {
   const { subject_id, title, semester, status } = paper;
 
   return (
-    <TableRow role="row">
+    <Table.Row>
       {/* 1st column: PDF Icon */}
       <div className="flex items-center justify-center">
         <FaFilePdf className="text-red-600 w-8 h-8" />
@@ -102,9 +106,26 @@ function PaperRow({ paper }) {
       {/* 5th column: Status */}
       <Status status={status}>{status}</Status>
 
-      {/* 6th column: Empty or for Actions */}
-      <button>Delete</button>
-    </TableRow>
+      <div>
+        <Modal>
+          <Menus.Menu>
+            <Menus.Toggle>
+              {/* put id={paperId} here later*/}
+              <Menus.List>
+                {/* put id={paperId} here later*/}
+                <Modal.Open opens="edit">
+                  <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
+                </Modal.Open>
+              </Menus.List>
+            </Menus.Toggle>
+
+            <Modal.Window name="edit">
+              <CreatePaperForm paperToEdit={paper} />
+            </Modal.Window>
+          </Menus.Menu>
+        </Modal>
+      </div>
+    </Table.Row>
   );
 }
 

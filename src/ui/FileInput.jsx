@@ -1,28 +1,25 @@
 import styled from "styled-components";
 
-const StyledFileInput = styled.input.attrs({ type: "file" })`
+const FileInput = styled.input.attrs({ type: "file" })`
   font-size: 1.4rem;
-  padding: 0.4rem;
-
-  /* Ensure browser-default button is visible */
-  appearance: auto;
-  -webkit-appearance: file-upload;
-  cursor: pointer;
+  border-radius: var(--border-radius-sm);
 
   &::file-selector-button {
     font: inherit;
-    background-color: var(--color-brand-600);
-    color: white;
-    border: none;
-    padding: 0.4rem 1.2rem;
-    border-radius: var(--border-radius-sm);
+    font-weight: 500;
+    padding: 0.8rem 1.2rem;
     margin-right: 1.2rem;
+    border-radius: var(--border-radius-sm);
+    border: none;
+    color: var(--color-brand-50);
+    background-color: var(--color-brand-600);
     cursor: pointer;
+    transition: color 0.2s, background-color 0.2s;
+
+    &:hover {
+      background-color: var(--color-brand-700);
+    }
   }
 `;
-
-function FileInput(props) {
-  return <StyledFileInput {...props} />;
-}
 
 export default FileInput;

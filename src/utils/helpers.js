@@ -1,30 +1,61 @@
-import { differenceInDays, formatDistance, parseISO } from "date-fns";
-import { differenceInDays } from "date-fns/esm";
+// export async function uploadPDFToDrive(file, accessToken, folderId = null) {
+//   const metadata = {
+//     name: file.name,
+//     mimeType: file.type,
+//     ...(folderId && { parents: [folderId] }),
+//   };
 
-// We want to make this function work for both Date objects and strings (which come from Supabase)
-export const subtractDates = (dateStr1, dateStr2) =>
-  differenceInDays(parseISO(String(dateStr1)), parseISO(String(dateStr2)));
+//   const form = new FormData();
+//   form.append(
+//     "metadata",
+//     new Blob([JSON.stringify(metadata)], { type: "application/json" })
+//   );
+//   form.append("file", file);
 
-export const formatDistanceFromNow = (dateStr) =>
-  formatDistance(parseISO(dateStr), new Date(), {
-    addSuffix: true,
-  })
-    .replace("about ", "")
-    .replace("in", "In");
+//   const res = await fetch(
+//     "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+//     {
+//       method: "POST",
+//       headers: {
+//         Authorization: `Bearer ${accessToken}`,
+//       },
+//       body: form,
+//     }
+//   );
 
-// Supabase needs an ISO date string. However, that string will be different on every render because the MS or SEC have changed, which isn't good. So we use this trick to remove any time
-export const getToday = function (options = {}) {
-  const today = new Date();
+//   if (!res.ok) throw new Error(`Upload failed: ${res.status}`);
+//   const { id } = await res.json();
+//   return `https://drive.google.com/file/d/${id}/view`;
+// }
 
-  // This is necessary to compare with created_at from Supabase, because it it not at 0.0.0.0, so we need to set the date to be END of the day when we compare it with earlier dates
-  if (options?.end)
-    // Set to the last second of the day
-    today.setUTCHours(23, 59, 59, 999);
-  else today.setUTCHours(0, 0, 0, 0);
-  return today.toISOString();
-};
+export async function uploadWordFileAnonymously(file, folderId = null) {
+  const accessToken = "YOUR_MANUALLY_GENERATED_TOKEN"; // 🔴 FOR TESTING ONLY
 
-export const formatCurrency = (value) =>
-  new Intl.NumberFormat("en", { style: "currency", currency: "USD" }).format(
-    value
+  const metadata = {
+    name: file.name,
+    mimeType: file.type,
+    ...(folderId && { parents: [folderId] }),
+  };
+
+  const form = new FormData();
+  form.append(
+    "metadata",
+    new Blob([JSON.stringify(metadata)], { type: "application/json" })
   );
+  form.append("file", file);
+
+  const res = await fetch(
+    "https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: form,
+    }
+  );
+
+  const result = await res.json();
+  if (!res.ok) throw new Error(`Upload failed: ${result.error?.message}`);
+  return `https://drive.google.com/file/d/${result.id}/view`;
+}

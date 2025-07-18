@@ -1,66 +1,45 @@
 import { useForm } from "react-hook-form";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "react-hot-toast";
 
+import Input from "../../ui/Input";
+import Form from "../../ui/Form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
-import Form from "../../ui/Form";
-import Input from "../../ui/Input";
 import Textarea from "../../ui/Textarea";
-import FormRow from "./../../ui/FormRow";
+import FormRow from "../../ui/FormRow";
 
-import { useCreatePaper } from "./useCreateCabin";
-import { useEditPaper } from "./useEditPaper";
+import { createPapers } from "../../services/apiFaculty";
 
-function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
-  const { isCreating, createPaper } = useCreatePaper();
-  const { isEditing, editPaper } = useEditPaper();
+function CreatePaperForm() {
+  const QueryClient = useQueryClient();
 
-  const { id: editId, ...editValues } = paperToEdit;
-
-  const isEditSession = Boolean(editId);
-
-  const { register, handleSubmit, reset, formState } = useForm({
-    defaultValues: isEditSession ? editValues : {},
+  const { mutate, isLoading: isCreating } = useMutation({
+    mutationFn: createPapers,
+    onSuccess: () => {
+      toast.success("New paper successfully created!");
+      QueryClient.invalidateQueries({ queryKey: ["exam_papers"] });
+      reset();
+    },
+    onError: (err) => {
+      toast.error(err.message);
+    },
   });
 
+  const { register, handleSubmit, reset, formState } = useForm();
   const { errors } = formState;
 
-  const isWorking = isCreating || isEditing;
-
   function onSubmit(data) {
-    const file = typeof data.file === "string" ? data.file : data.file[0];
-
-    if (isEditSession)
-      editPaper(
-        { newPaperdata: { ...data, image }, id: editId },
-        {
-          onSuccess: (data) => {
-            reset();
-            onCloseModal?.();
-          },
-        }
-      );
-    else
-      createPaper(
-        { ...data, qp_file_url: file },
-        {
-          onSuccess: (data) => {
-            reset();
-            onCloseModal?.();
-          },
-        }
-      );
+    mutate({ ...data, qp_file_url: data.qp_file_url[0] });
   }
 
   return (
-    <Form
-      onSubmit={handleSubmit(onSubmit)}
-      type={onCloseModal ? "modal" : "regular"}
-    >
+    <Form onSubmit={handleSubmit(onSubmit)}>
       <FormRow label="Name" error={errors?.name?.message}>
         <Input
           type="text"
           id="name"
-          disabled={isWorking}
+          disabled={isCreating}
           {...register("name", {
             required: "This field is required!",
           })}
@@ -71,7 +50,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         <Input
           type="number"
           id="maxCapacity"
-          disabled={isWorking}
+          disabled={isCreating}
           {...register("name", {
             required: "This field is required!",
           })}
@@ -82,7 +61,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         <Input
           type="number"
           id="regularPrice"
-          disabled={isWorking}
+          disabled={isCreating}
           {...register("name", {
             required: "This field is required!",
           })}
@@ -94,7 +73,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           type="number"
           id="discount"
           defaultValue={0}
-          disabled={isWorking}
+          disabled={isCreating}
           {...register("name", {
             required: "This field is required!",
           })}
@@ -106,7 +85,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           type="number"
           id="description"
           defaultValue=""
-          disabled={isWorking}
+          disabled={isCreating}
           {...register("name", {
             required: "This field is required!",
           })}
@@ -117,25 +96,19 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         <FileInput
           id="image"
           accept="image/*"
-          disabled={isWorking}
+          disabled={isCreating}
           {...register("name", {
-            required: isEditSession ? false : "This field is required!",
+            required: "This field is required!",
           })}
         />
       </FormRow>
 
       <FormRow>
         {/* type is an HTML attribute! */}
-        <Button
-          variation="secondary"
-          type="reset"
-          onClick={() => onCloseModal?.()}
-        >
+        <Button variation="secondary" type="reset">
           Cancel
         </Button>
-        <Button disabled={isWorking}>
-          {isEditSession ? "Edit paper" : "Add Paper"}
-        </Button>
+        <Button disabled={isCreating}>Add Paper</Button>
       </FormRow>
     </Form>
   );

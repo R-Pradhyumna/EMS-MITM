@@ -1,12 +1,9 @@
-import { useState } from "react";
+import AddPaper from "../features/faculty/AddPaper";
 import PaperTable from "../features/faculty/PaperTable";
-import Button from "../ui/Button";
 import Heading from "../ui/Heading";
 import Row from "../ui/Row";
-import CreatePaperForm from "../features/faculty/CreatePaperForm";
 
 function Faculty() {
-  const [showForm, setShowForm] = useState(false);
   return (
     <>
       <Row type="horizontal">
@@ -16,10 +13,7 @@ function Faculty() {
 
       <Row>
         <PaperTable />
-        <Button onClick={() => setShowForm((show) => !show)}>
-          Add new paper
-        </Button>
-        {showForm && <CreatePaperForm />}
+        <AddPaper />
       </Row>
     </>
   );
