@@ -18,15 +18,6 @@ import CreatePaperForm from "./CreatePaperForm";
 //   }
 // `;
 
-const Img = styled.img`
-  display: block;
-  width: 6.4rem;
-  aspect-ratio: 3 / 2;
-  object-fit: cover;
-  object-position: center;
-  transform: scale(1.5) translateX(-7px);
-`;
-
 const SubCode = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
@@ -85,8 +76,8 @@ const Status = styled.div`
 `;
 
 function PaperRow({ paper }) {
-  const { subject_id, title, semester, status } = paper;
-
+  const { id: paperId, subject_id, subject_name, semester, status } = paper;
+  // console.log(paperId);
   return (
     <Table.Row>
       {/* 1st column: PDF Icon */}
@@ -98,7 +89,7 @@ function PaperRow({ paper }) {
       <SubCode>{subject_id}</SubCode>
 
       {/* 3rd column: Subject Name */}
-      <SubName>{title}</SubName>
+      <SubName>{subject_name}</SubName>
 
       {/* 4th column: Semester */}
       <Semester>{semester}</Semester>
@@ -109,15 +100,12 @@ function PaperRow({ paper }) {
       <div>
         <Modal>
           <Menus.Menu>
-            <Menus.Toggle>
-              {/* put id={paperId} here later*/}
-              <Menus.List>
-                {/* put id={paperId} here later*/}
-                <Modal.Open opens="edit">
-                  <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
-                </Modal.Open>
-              </Menus.List>
-            </Menus.Toggle>
+            <Menus.Toggle id={paperId} />
+            <Menus.List id={paperId}>
+              <Modal.Open opens="edit">
+                <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
+              </Modal.Open>
+            </Menus.List>
 
             <Modal.Window name="edit">
               <CreatePaperForm paperToEdit={paper} />
