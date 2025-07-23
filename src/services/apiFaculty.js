@@ -33,12 +33,21 @@ export async function createEditPapers(newPaper, id) {
     subject_id,
     subject_name,
     semester,
+<<<<<<< HEAD
     academic_year,
     department_id,
   } = newPaper;
 
   // For testing, we build folderPath directly from inputs
   const folderPath = `Scheme ${academic_year}/${department_id}/Sem${semester}/${subject_name}`;
+=======
+    scheme,
+    department_name,
+  } = newPaper;
+
+  // For testing, we build folderPath directly from inputs
+  const folderPath = `Scheme ${scheme}/${department_name}/Sem${semester}/${subject_name}`;
+>>>>>>> f02da7096e5a579e923721d6b26d66e6328e337a
 
   // Define filenames
   const qpFilename = `papers/${folderPath}/QP.docx`;
@@ -78,8 +87,13 @@ export async function createEditPapers(newPaper, id) {
     subject_id: Number(subject_id),
     subject_name,
     semester: semester,
+<<<<<<< HEAD
     academic_year: Number(academic_year),
     department_id: department_id,
+=======
+    scheme: Number(scheme),
+    department_name: department_name,
+>>>>>>> f02da7096e5a579e923721d6b26d66e6328e337a
     qp_file_url,
     scheme_file_url,
     qp_file_type: qp_file[0].type,
