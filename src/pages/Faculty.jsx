@@ -1,4 +1,5 @@
 import AddPaper from "../features/faculty/AddPaper";
+import FacultyTableOperations from "../features/faculty/FacultyTableOperations";
 import PaperTable from "../features/faculty/PaperTable";
 import Heading from "../ui/Heading";
 import Row from "../ui/Row";
@@ -8,7 +9,7 @@ function Faculty() {
     <>
       <Row type="horizontal">
         <Heading as="h1">Faculty Portal</Heading>
-        <p>Filter / Sort</p>
+        <FacultyTableOperations />
       </Row>
 
       <Row>

@@ -4,25 +4,36 @@ import PaperRow from "./PaperRow";
 import { usePapers } from "./usePapers";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
-
-const TableHeader = styled.header`
-  display: grid;
-  grid-template-columns: 0.6fr 1.8fr 2.2fr 1fr 1fr 1fr;
-  column-gap: 2.4rem;
-  align-items: center;
-
-  background-color: var(--color-grey-50);
-  border-bottom: 1px solid var(--color-grey-100);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  font-weight: 600;
-  color: var(--color-grey-600);
-  padding: 1.6rem 2.4rem;
-`;
+import { useSearchParams } from "react-router-dom";
 
 function PaperTable() {
   const { isLoading, papers } = usePapers();
+  const [searchParams] = useSearchParams();
+
   if (isLoading) return <Spinner />;
+
+  // 1. Filter
+  const filterValue = searchParams.get("dept") || "all";
+
+  let filteredPapers;
+  if (filterValue === "all") filteredPapers = papers;
+  if (filterValue === "dept" && currentUser?.department_id) {
+    filteredPapers = papers.filter(
+      (paper) => paper.department_id === currentUser.department_id
+    );
+  }
+
+  // 2. Sort
+  const sortBy = searchParams.get("sortBy") || "scheme";
+
+  let sortedPapers;
+  if (sortBy === "scheme")
+    sortedPapers = filteredPapers.sort(
+      (a, b) => a.academic_year - b.academic_year
+    );
+
+  if (sortBy === "sem")
+    sortedPapers = filteredPapers.sort((a, b) => a.semester - b.semester);
 
   return (
     <Menus>
@@ -37,7 +48,7 @@ function PaperTable() {
         </Table.Header>
 
         <Table.Body
-          data={papers}
+          data={sortedPapers}
           render={(paper) => <PaperRow paper={paper} key={paper.id} />}
         />
       </Table>

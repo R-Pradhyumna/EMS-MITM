@@ -125,7 +125,6 @@ function CreatePaperForm({
       </FormRow>
 
       <FormRow label="Academic Year" error={errors?.academic_year?.message}>
-        {/* Change this to scheme */}
         <Input
           type="number"
           id="academic_year"
