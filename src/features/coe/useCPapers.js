@@ -5,17 +5,17 @@ import { useSearchParams } from "react-router-dom";
 export function useCPapers() {
   const [searchParams] = useSearchParams();
 
-  // // 1. Filter
-  // const filterValue = searchParams.get("status");
-  // const filter =
-  //   !filterValue || filterValue === "all"
-  //     ? null
-  //     : { field: "status", value: filterValue };
+  // 1. Filter
+  const filterValue = searchParams.get("status");
+  const filter =
+    !filterValue || filterValue === "all"
+      ? null
+      : { field: "status", value: filterValue };
 
-  // // 2. Sort
-  // const sortByRaw = searchParams.get("sortBy") || "academic_year";
-  // const { field, direction } = sortByRaw.split("-");
-  // const sortBy = { field, direction };
+  // 2. Sort
+  const sortByRaw = searchParams.get("sortBy") || "academic_year";
+  const { field, direction } = sortByRaw.split("-");
+  const sortBy = { field, direction };
 
   const {
     isLoading,

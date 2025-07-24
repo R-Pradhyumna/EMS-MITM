@@ -3,12 +3,12 @@ import Filter from "../../ui/Filter";
 import TableOperations from "../../ui/TableOperations";
 import { getDepartments } from "../../services/apiCoE";
 
-const { dept } = getDepartments();
+// const { dept } = getDepartments();
 
 function CoETableOperations() {
   return (
     <TableOperations>
-      <Filter filterField="status" options={dept.name} />
+      {/* <Filter filterField="status" options={dept.name} /> */}
       <Filter
         filterField="dept"
         options={[
