@@ -1,9 +1,7 @@
-import { HiPencil } from "react-icons/hi2";
 import styled from "styled-components";
-import Menus from "../../ui/Menus";
-import Modal from "../../ui/Modal";
+// import { format, isToday } from "date-fns";
+
 import Table from "../../ui/Table";
-import CreatePaperForm from "./CreatePaperForm";
 
 const SubCode = styled.div`
   font-size: 1.6rem;
@@ -62,51 +60,18 @@ const Status = styled.div`
       : "var(--color-grey-700)"};
 `;
 
-function PaperRow({ paper }) {
-  const {
-    id: paperId,
-    subject_id,
-    academic_year,
-    subject_name,
-    semester,
-    status,
-  } = paper;
-  // console.log(paperId);
+function CoERow({
+  paper: { subject_id, academic_year, subject_name, semester, status },
+}) {
   return (
     <Table.Row>
-      {/* 1st column: Subject Code */}
       <SubCode>{subject_id}</SubCode>
-
-      {/* 2nd column: Academic_year */}
       <SubCode>{academic_year}</SubCode>
-
-      {/* 3rd column: Subject Name */}
       <SubName>{subject_name}</SubName>
-
-      {/* 4th column: Semester */}
       <Semester>{semester}</Semester>
-
-      {/* 5th column: Status */}
       <Status status={status}>{status}</Status>
-
-      <div>
-        <Modal>
-          <Menus.Menu>
-            <Menus.Toggle id={paperId} />
-            <Menus.List id={paperId}>
-              <Modal.Open opens="edit">
-                <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
-              </Modal.Open>
-            </Menus.List>
-
-            <Modal.Window name="edit">
-              <CreatePaperForm paperToEdit={paper} />
-            </Modal.Window>
-          </Menus.Menu>
-        </Modal>
-      </div>
     </Table.Row>
   );
 }
 
-export default PaperRow;
+export default CoERow;

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getPapers } from "../../services/apiFaculty";
 
-export function usePapers() {
+export function useFPapers() {
   const {
     isLoading,
     data: papers,

@@ -10,15 +10,7 @@ import { useCreatePaper } from "./useCreatePaper";
 import { useEditPaper } from "./useEditPaper";
 
 // This works, but only manual entry
-function CreatePaperForm({
-  paperToEdit = {},
-  onCloseModal,
-  userDepartment,
-  subjects = [],
-  semesters = [],
-  examId,
-  academicYear,
-}) {
+function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
   const { isCreating, createPaper } = useCreatePaper();
   const { isEditing, editPaper } = useEditPaper();
   const isWorking = isCreating || isEditing;

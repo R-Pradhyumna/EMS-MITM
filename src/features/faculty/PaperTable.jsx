@@ -1,46 +1,31 @@
-import styled from "styled-components";
+import { useSearchParams } from "react-router-dom";
+import Menus from "../../ui/Menus";
+import Table from "../../ui/Table";
 import Spinner from "./../../ui/Spinner";
 import PaperRow from "./PaperRow";
-import { usePapers } from "./usePapers";
-import Table from "../../ui/Table";
-import Menus from "../../ui/Menus";
-import { useSearchParams } from "react-router-dom";
+import Empty from "./../../ui/Empty";
+
+import { useFPapers } from "./useFPapers";
 
 function PaperTable() {
-  const { isLoading, papers } = usePapers();
+  const { isLoading, papers } = useFPapers();
   const [searchParams] = useSearchParams();
 
   if (isLoading) return <Spinner />;
 
-  // 1. Filter
-  const filterValue = searchParams.get("dept") || "all";
+  if (!papers.length) return <Empty resourceName="papers" />;
 
-  let filteredPapers;
-  if (filterValue === "all") filteredPapers = papers;
-  if (filterValue === "dept" && currentUser?.department_id) {
-    filteredPapers = papers.filter(
-      (paper) => paper.department_id === currentUser.department_id
-    );
-  }
-
-  // 2. Sort
-  const sortBy = searchParams.get("sortBy") || "scheme";
-
-  let sortedPapers;
-  if (sortBy === "scheme")
-    sortedPapers = filteredPapers.sort(
-      (a, b) => a.academic_year - b.academic_year
-    );
-
-  if (sortBy === "sem")
-    sortedPapers = filteredPapers.sort((a, b) => a.semester - b.semester);
+  const sortBy = searchParams.get("sortBy") || "academic_year";
+  const [field, direction] = sortBy.split("-");
+  const modifier = direction === "asc" ? 1 : -1;
+  const sortedPapers = papers.sort((a, b) => (a[field] - b[field]) * modifier);
 
   return (
     <Menus>
-      <Table columns="0.6fr 1.8fr 2.2fr 1fr 1fr 1fr">
+      <Table columns="1.4fr 1.8fr 2.2fr 1fr 1fr 1fr">
         <Table.Header>
-          <div></div>
           <div>Subject Code</div>
+          <div>Academic Year</div>
           <div>Subject Name</div>
           <div>Semester</div>
           <div>Status</div>

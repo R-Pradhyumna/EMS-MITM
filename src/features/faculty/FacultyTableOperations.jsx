@@ -1,22 +1,15 @@
 import TableOperations from "./../../ui/TableOperations";
-import Filter from "../../ui/Filter";
-import SortBy from "../../ui/sortBy";
+import SortBy from "../../ui/SortBy";
 
 function FacultyTableOperations() {
   return (
     <TableOperations>
-      <Filter
-        filterField="papers"
-        options={[
-          { value: "all", label: "All papers" },
-          { value: "dept", label: "Filter by dept" },
-        ]}
-      />
-
       <SortBy
         options={[
-          { value: "scheme", label: "Sort by scheme" },
-          { value: "sem", label: "Sort by semester" },
+          { value: "academic_year-asc", label: "Sort by scheme(ascending)" },
+          { value: "academic_year-desc", label: "Sort by scheme(descending)" },
+          { value: "semester-asc", label: "Sort by semester(1-8)" },
+          { value: "semester-desc", label: "Sort by semester(8-1)" },
         ]}
       />
     </TableOperations>

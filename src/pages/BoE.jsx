@@ -1,5 +1,5 @@
 function BoE() {
-  return <div>BoE</div>;
+  return <div>BoE Portal</div>;
 }
 
 export default BoE;
