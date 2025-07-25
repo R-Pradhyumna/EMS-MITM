@@ -61,11 +61,11 @@ const Status = styled.div`
 `;
 
 function CoERow({
-  paper: { subject_id, academic_year, subject_name, semester, status },
+  paper: { subject_code, academic_year, subject_name, semester, status },
 }) {
   return (
     <Table.Row>
-      <SubCode>{subject_id}</SubCode>
+      <SubCode>{subject_code}</SubCode>
       <SubCode>{academic_year}</SubCode>
       <SubName>{subject_name}</SubName>
       <Semester>{semester}</Semester>

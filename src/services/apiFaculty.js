@@ -27,18 +27,17 @@ export async function getSubjectsForDepartment() {
 // Works for manual inputs
 export async function createEditPapers(newPaper, id) {
   const {
-    exam_id,
     qp_file,
     scheme_file,
-    subject_id,
+    subject_code,
     subject_name,
     semester,
     academic_year,
-    department_id,
+    department_name,
   } = newPaper;
 
   // For testing, we build folderPath directly from inputs
-  const folderPath = `Scheme ${academic_year}/${department_id}/Sem${semester}/${subject_name}`;
+  const folderPath = `Academic Year ${academic_year}/${department_name}/Sem${semester}/${subject_name}`;
 
   // Define filenames
   const qpFilename = `papers/${folderPath}/QP.docx`;
@@ -74,14 +73,13 @@ export async function createEditPapers(newPaper, id) {
 
   // Build payload for DB
   const payload = {
-    exam_id: 1,
-    subject_id: Number(subject_id),
+    subject_code,
     subject_name,
     semester: semester,
     academic_year: Number(academic_year),
-    department_id: department_id,
+    department_name: department_name,
     academic_year: Number(academic_year),
-    department_id: department_id,
+    department_name: department_name,
     qp_file_url,
     scheme_file_url,
     qp_file_type: qp_file[0].type,

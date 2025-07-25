@@ -29,12 +29,11 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
     const schemeFile = data.scheme_file[0];
 
     const payload = {
-      exam_id: Number(data.exam_id),
-      subject_id: Number(data.subject_id),
+      subject_code: data.subject_code,
       subject_name: data.subject_name,
       semester: data.semester,
       academic_year: Number(data.academic_year),
-      department_id: Number(data.department_id),
+      department_name: data.department_name,
       qp_file: qpFile,
       scheme_file: schemeFile,
     };
@@ -71,25 +70,14 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
       onSubmit={handleSubmit(onSubmit)}
       type={onCloseModal ? "modal" : "regular"}
     >
-      <FormRow label="Exam ID" error={errors?.exam_id?.message}>
-        {/* Don't take this input  */}
+      <FormRow label="Subject Code" error={errors?.subject_code?.message}>
         <Input
-          type="number"
-          id="exam_id"
+          type="text"
+          id="subject_code"
           disabled={isWorking}
-          {...register("exam_id", {
+          {...register("subject_code", {
             required: "This field is required!",
-          })}
-        />
-      </FormRow>
-
-      <FormRow label="Subject ID" error={errors?.subject_id?.message}>
-        <Input
-          type="number"
-          id="subject_id"
-          disabled={isWorking}
-          {...register("subject_id", {
-            required: "This field is required!",
+            max: 8,
           })}
         />
       </FormRow>
@@ -127,14 +115,14 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         />
       </FormRow>
 
-      <FormRow label="Department ID" error={errors?.department_id?.message}>
-        {/* Change this to dept name */}
+      <FormRow label="Department Name" error={errors?.department_name?.message}>
         <Input
-          type="number"
-          id="department_id"
+          type="text"
+          id="department_name"
           disabled={isWorking}
-          {...register("department_id", {
+          {...register("department_name", {
             required: "This field is required!",
+            max: 4,
           })}
         />
       </FormRow>

@@ -65,7 +65,7 @@ const Status = styled.div`
 function PaperRow({ paper }) {
   const {
     id: paperId,
-    subject_id,
+    subject_code,
     academic_year,
     subject_name,
     semester,
@@ -75,7 +75,7 @@ function PaperRow({ paper }) {
   return (
     <Table.Row>
       {/* 1st column: Subject Code */}
-      <SubCode>{subject_id}</SubCode>
+      <SubCode>{subject_code}</SubCode>
 
       {/* 2nd column: Academic_year */}
       <SubCode>{academic_year}</SubCode>
