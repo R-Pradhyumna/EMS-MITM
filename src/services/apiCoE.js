@@ -1,25 +1,34 @@
 import supabase from "./supabase";
+import { PAGE_SIZE } from "../utils/constants";
 
-export async function getPapers({ filter, sortBy }) {
-  let query = supabase.from("exam_papers").select("*");
+export async function getPapers({ filters = [], search = "", page }) {
+  let query = supabase.from("exam_papers").select("*", { count: "exact" });
 
-  // // Filter
-  // if (filter) query = query.eq(filter.field, filter.value);
+  // Filter
+  filters.forEach((filter) => {
+    if (filter?.field && filter.value) {
+      query = query.eq(filter.field, filter.value);
+    }
+  });
 
-  // // Sort
-  // if (sortBy) {
-  //   query = query.order(sortBy.field, {
-  //     order: sortBy.direction,
-  //   });
-  // }
+  if (search && search.trim() !== "") {
+    query = query.eq("subject_code", search.trim());
+  }
+  // if (filters) query = query.eq(filters.field, filters.value);
 
-  const { data, error } = await query;
+  if (page) {
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    query = query.range(from, to);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error("Papers could not be loaded!");
   }
 
-  return data;
+  return { data, count };
 }
 
 export async function getPaper(id) {
@@ -30,7 +39,7 @@ export async function getPaper(id) {
     throw new Error("Paper not found!");
   }
 
-  return data;
+  return { data, count };
 }
 
 export async function getDepartments() {

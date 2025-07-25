@@ -3,10 +3,11 @@ import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
 import Spinner from "../../ui/Spinner";
+import Pagination from "../../ui/Pagination";
 import { useCPapers } from "./useCPapers";
 
 function CoETable() {
-  const { papers = [], isLoading } = useCPapers();
+  const { papers = [], isLoading, count } = useCPapers();
 
   if (isLoading) return <Spinner />;
 
@@ -27,6 +28,9 @@ function CoETable() {
           data={papers}
           render={(paper) => <CoERow key={paper.id} paper={paper} />}
         />
+        <Table.Footer>
+          <Pagination count={count} />
+        </Table.Footer>
       </Table>
     </Menus>
   );
