@@ -30,18 +30,17 @@ const Status = styled.div`
   border-radius: var(--border-radius-sm);
   text-align: center;
   width: fit-content;
+  white-space: nowrap;
 
   background-color: ${({ status }) =>
     status === "Submitted"
       ? "var(--color-green-100)"
-      : status === "Pending-CoE"
+      : status === "CoE-approved"
       ? "var(--color-yellow-100)"
-      : status === "Pending-BoE"
+      : status === "BoE-approved"
       ? "var(--color-indigo-100)"
-      : status === "Correction-Requested"
-      ? "var(--color-red-100)"
       : status === "Locked"
-      ? "var(--color-yellow-100)"
+      ? "var(--color-grey-300)"
       : status === "Downloaded"
       ? "var(--color-blue-100)"
       : "var(--color-grey-100)"};
@@ -49,14 +48,12 @@ const Status = styled.div`
   color: ${({ status }) =>
     status === "Submitted"
       ? "var(--color-yellow-700)"
-      : status === "Pending-CoE"
+      : status === "CoE-approved"
       ? "var(--color-yellow-700)"
-      : status === "Pending-BoE"
+      : status === "BoE-approved"
       ? "var(--color-indigo-700)"
-      : status === "Correction-Requested"
-      ? "var(--color-red-700)"
       : status === "Locked"
-      ? "var(--color-green-700)"
+      ? "var(--color-grey-800)"
       : status === "Downloaded"
       ? "var(--color-blue-700)"
       : "var(--color-grey-700)"};
@@ -71,7 +68,6 @@ function PaperRow({ paper }) {
     semester,
     status,
   } = paper;
-  // console.log(paperId);
   return (
     <Table.Row>
       {/* 1st column: Subject Code */}

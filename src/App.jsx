@@ -13,13 +13,10 @@ import Users from "./pages/Users";
 import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
 import { Toaster } from "react-hot-toast";
+import Paper from "./pages/Paper";
+import ApproveCoE from "./features/paperActivities/ApproveCoE";
 
-const queryClient = new QueryClient({
-  defaultOptions: {
-    // staleTime: 60 * 1000, //! minute
-    staleTime: 0, //Always re-fetch
-  },
-});
+const queryClient = new QueryClient();
 
 function App() {
   return (
@@ -34,6 +31,8 @@ function App() {
             <Route path="faculty" element={<Faculty />} />
             <Route path="coe" element={<CoE />} />
             <Route path="boe" element={<BoE />} />
+            <Route path="papers/:id" element={<Paper />} />
+            <Route path="approve/:id" element={<ApproveCoE />} />
             <Route path="principal" element={<Principal />} />
             <Route path="users" element={<Users />} />
           </Route>

@@ -32,14 +32,32 @@ export async function getPapers({ filters = [], search = "", page }) {
 }
 
 export async function getPaper(id) {
-  const { data, error } = await supabase.from("exam_papers").select("*");
-  console.log(data);
+  const { data, error } = await supabase
+    .from("exam_papers")
+    .select("*")
+    .eq("id", id)
+    .single();
 
   if (error) {
     throw new Error("Paper not found!");
   }
 
-  return { data, count };
+  return data;
+}
+
+export async function approvePaper(id, obj) {
+  const { data, error } = await supabase
+    .from("exam_papers")
+    .update(obj)
+    .eq("id", id)
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error("Paper could not be locked!");
+  }
+
+  return data;
 }
 
 export async function getDepartments() {
