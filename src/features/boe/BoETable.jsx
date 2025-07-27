@@ -1,0 +1,39 @@
+import BoERow from "./BoERow";
+import Table from "../../ui/Table";
+import Menus from "../../ui/Menus";
+import Empty from "../../ui/Empty";
+import Spinner from "../../ui/Spinner";
+import Pagination from "../../ui/Pagination";
+import { useBPapers } from "./useBPapers";
+
+function BoETable() {
+  const { papers = [], isLoading, count } = useBPapers();
+
+  if (isLoading) return <Spinner />;
+
+  if (!papers.length) return <Empty resourceName="papers" />;
+
+  return (
+    <Menus>
+      <Table columns="1.4fr 2fr 2.4fr 1.4fr 1fr 3.2rem">
+        <Table.Header>
+          <div>Subject Code</div>
+          <div>Scheme/Academic Year</div>
+          <div>Subject Name</div>
+          <div>Semester</div>
+          <div>Status</div>
+          <div></div>
+        </Table.Header>
+        <Table.Body
+          data={papers}
+          render={(paper) => <BoERow key={paper.id} paper={paper} />}
+        />
+        <Table.Footer>
+          <Pagination count={count} />
+        </Table.Footer>
+      </Table>
+    </Menus>
+  );
+}
+
+export default BoETable;

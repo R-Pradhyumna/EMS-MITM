@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
 
-import PaperDataBox from "./PaperDataBox";
+import BPaperDataBox from "./BPaperDataBox";
 import Row from "../../ui/Row";
 import Heading from "../../ui/Heading";
 import ButtonGroup from "../../ui/ButtonGroup";
@@ -9,8 +9,8 @@ import Button from "../../ui/Button";
 import ButtonText from "../../ui/ButtonText";
 
 import { useMoveBack } from "../../hooks/useMoveBack";
-import { useCPaper } from "./useCPaper";
-import Spinner from "./../../ui/Spinner";
+import { useBPaper } from "./useBPaper";
+import Spinner from "../../ui/Spinner";
 
 const HeadingGroup = styled.div`
   display: flex;
@@ -18,13 +18,14 @@ const HeadingGroup = styled.div`
   align-items: center;
 `;
 
-const Status = styled.div`
+const Status = styled.span`
   font-family: "Sono";
   font-weight: 500;
   padding: 0.4rem 1.2rem;
   border-radius: var(--border-radius-sm);
   text-align: center;
   width: fit-content;
+  margin-left: 2rem;
 
   background-color: ${({ status }) =>
     status === "Submitted"
@@ -34,7 +35,7 @@ const Status = styled.div`
       : status === "BoE-approved"
       ? "var(--color-indigo-100)"
       : status === "Locked"
-      ? "var(--color-yellow-100)"
+      ? "var(--color-grey-300)"
       : status === "Downloaded"
       ? "var(--color-blue-100)"
       : "var(--color-grey-100)"};
@@ -47,14 +48,14 @@ const Status = styled.div`
       : status === "BoE-approved"
       ? "var(--color-indigo-700)"
       : status === "Locked"
-      ? "var(--color-green-700)"
+      ? "var(--color-grey-800)"
       : status === "Downloaded"
       ? "var(--color-blue-700)"
       : "var(--color-grey-700)"};
 `;
 
-function PaperDetail() {
-  const { paper, isLoading } = useCPaper();
+function BPaperDetail() {
+  const { paper, isLoading } = useBPaper();
   const moveBack = useMoveBack();
   const navigate = useNavigate();
 
@@ -63,6 +64,7 @@ function PaperDetail() {
   if (!paper) return <div>No paper data</div>;
 
   const { status, id: paperId } = paper;
+  console.log(status);
   return (
     <>
       <Row type="horizontal">
@@ -75,17 +77,13 @@ function PaperDetail() {
         <ButtonText onClick={moveBack}>&larr; Back</ButtonText>
       </Row>
 
-      <PaperDataBox paper={paper} />
+      <BPaperDataBox paper={paper} />
 
       <ButtonGroup>
-        {status === "Submitted" && (
+        {status === "CoE-approved" && (
           <Button onClick={() => navigate(`/approve/${paperId}`)}>
             Approve
           </Button>
-        )}
-
-        {status === "BoE-approved" && (
-          <Button onClick={() => navigate(`/approve/${paperId}`)}>Lock</Button>
         )}
 
         <Button variation="secondary" onClick={moveBack}>
@@ -96,4 +94,4 @@ function PaperDetail() {
   );
 }
 
-export default PaperDetail;
+export default BPaperDetail;
