@@ -89,11 +89,13 @@ function PaperRow({ paper }) {
         <Modal>
           <Menus.Menu>
             <Menus.Toggle id={paperId} />
-            <Menus.List id={paperId}>
-              <Modal.Open opens="edit">
-                <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
-              </Modal.Open>
-            </Menus.List>
+            {status === "Submitted" && (
+              <Menus.List id={paperId}>
+                <Modal.Open opens="edit">
+                  <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
+                </Modal.Open>
+              </Menus.List>
+            )}
 
             <Modal.Window name="edit">
               <CreatePaperForm paperToEdit={paper} />

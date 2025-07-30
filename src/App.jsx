@@ -14,7 +14,7 @@ import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
 import { Toaster } from "react-hot-toast";
 import Paper from "./pages/Paper";
-import ApproveCoE from "./features/paperActivities/ApproveCoE";
+import Approve from "./pages/Approve";
 
 const queryClient = new QueryClient();
 
@@ -32,7 +32,7 @@ function App() {
             <Route path="coe" element={<CoE />} />
             <Route path="boe" element={<BoE />} />
             <Route path="papers/:id" element={<Paper />} />
-            <Route path="approve/:id" element={<ApproveCoE />} />
+            <Route path="approve/:id" element={<Approve />} />
             <Route path="principal" element={<Principal />} />
             <Route path="users" element={<Users />} />
           </Route>

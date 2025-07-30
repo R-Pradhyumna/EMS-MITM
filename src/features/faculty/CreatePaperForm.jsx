@@ -137,7 +137,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         />
       </FormRow>
 
-      <FormRow label="Scheme File (.doc/.docx)">
+      <FormRow label="Schema File (.doc/.docx)">
         <FileInput
           id="scheme_file"
           accept=".doc,.docx"

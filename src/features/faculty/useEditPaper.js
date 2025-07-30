@@ -6,7 +6,7 @@ export function useEditPaper() {
   const queryClient = useQueryClient();
 
   const { mutate: editPaper, isLoading: isEditing } = useMutation({
-    mutationFn: ({ newCabinData, id }) => createEditPapers(newCabinData, id),
+    mutationFn: ({ newPaperData, id }) => createEditPapers(newPaperData, id),
     onSuccess: () => {
       toast.success("Paper successfully edited!");
       queryClient.invalidateQueries({ queryKey: ["exam_papers"] });

@@ -60,3 +60,31 @@ export async function approvePaper(id, obj) {
 
   return data;
 }
+
+export async function uploadScrutinizedFiles(paper, qpFile, schemaFile) {
+  if (!qpFile || !schemaFile)
+    throw new Error("QP and Schema files are required");
+
+  const folderPath = paper.storage_folder_path;
+  const qpFilename = `papers/${folderPath}/QP.docx`;
+  const schemaFilename = `papers/${folderPath}/Scheme.docx`;
+
+  const { error: qpError } = await supabase.storage
+    .from("papers")
+    .upload(qpFilename, qpFile, { cacheControl: "3600", upsert: true });
+  if (qpError) throw new Error("Failed to upload corrected Question Paper");
+
+  const { error: schemaError } = await supabase.storage
+    .from("papers")
+    .upload(schemaFilename, schemaFile, { cacheControl: "3600", upsert: true });
+
+  if (schemaError) {
+    await supabase.storage.from("papers").remove([qpFilename]);
+    throw new Error("Failed to upload corrected Scheme of Valuation");
+  }
+
+  return {
+    qp_file_url: `${supabaseUrl}/storage/v1/object/public/papers/${qpFilename}`,
+    scheme_file_url: `${supabaseUrl}/storage/v1/object/public/papers/${schemaFilename}`,
+  };
+}

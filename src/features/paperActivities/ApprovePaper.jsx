@@ -9,7 +9,7 @@ import ButtonText from "../../ui/ButtonText";
 import Checkbox from "../../ui/Checkbox";
 import Spinner from "../../ui/Spinner";
 import { useMoveBack } from "../../hooks/useMoveBack";
-import { useCPaper } from "../coe/useCPaper";
+import StatusTransitions from "./StatusTransitions";
 import { useApproval } from "./useApproval";
 
 const Box = styled.div`
@@ -19,40 +19,19 @@ const Box = styled.div`
   padding: 2.4rem 4rem;
 `;
 
-// --- Workflow logic: map status to next action+update+confirmation ---
-const STATUS_TRANSITIONS = {
-  Submitted: {
-    label: "Approve",
-    update: (paper) => ({ status: "CoE-approved" }),
-    confirm: (paper) =>
-      `I confirm that ${paper.uploaded_by} has uploaded paper #${paper.id}`,
-  },
-  "BoE-approved": {
-    label: "Lock",
-    update: (paper) => ({ status: "Locked", is_locked: true }),
-    confirm: (paper) =>
-      `I confirm that ${
-        paper.approved_by || paper.uploaded_by
-      } has approved paper #${paper.id}`,
-  },
-};
-
-function ApproveCoE() {
-  const { paper, isLoading } = useCPaper();
+function ApprovePaper({ role, usePaperHook }) {
+  const { paper, isLoading } = usePaperHook();
   const moveBack = useMoveBack();
   const [confirmed, setConfirmed] = useState(false);
-
-  const { mutate, isLoading: isApproving } = useApproval();
+  const { mutate, isLoading: isApproving } = useApproval({ role });
 
   if (isLoading) return <Spinner />;
-  if (!paper) return null;
+  if (!paper) return <div>No paper found.</div>;
 
   const { id, status } = paper;
+  const transitions = StatusTransitions[status] || {};
+  const transition = transitions[role];
 
-  // Determine the current workflow step, or null for others
-  const transition = STATUS_TRANSITIONS[status] || null;
-
-  // Handle the button click: computes the update on the fly
   function handleAction() {
     if (!transition) return;
     mutate({ id, update: transition.update(paper) });
@@ -66,10 +45,7 @@ function ApproveCoE() {
         </Heading>
         <ButtonText onClick={moveBack}>&larr; Back</ButtonText>
       </Row>
-
-      <PaperDataBox paper={paper} />
-
-      {/* Show confirmation checkbox if a transition is available */}
+      <PaperDataBox paper={paper} role={role} />
       {transition && (
         <Box>
           <Checkbox
@@ -80,7 +56,6 @@ function ApproveCoE() {
           </Checkbox>
         </Box>
       )}
-
       <ButtonGroup>
         {transition && (
           <Button onClick={handleAction} disabled={!confirmed || isApproving}>
@@ -93,8 +68,13 @@ function ApproveCoE() {
           Back
         </Button>
       </ButtonGroup>
+      {!transition && (
+        <Box>
+          <span>No approval action available for your role at this stage.</span>
+        </Box>
+      )}
     </>
   );
 }
 
-export default ApproveCoE;
+export default ApprovePaper;

@@ -64,7 +64,7 @@ function BPaperDetail() {
   if (!paper) return <div>No paper data</div>;
 
   const { status, id: paperId } = paper;
-  console.log(status);
+
   return (
     <>
       <Row type="horizontal">

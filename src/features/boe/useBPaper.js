@@ -11,7 +11,6 @@ export function useBPaper() {
   } = useQuery({
     queryKey: ["exam_papers", id],
     queryFn: () => getPaper(id),
-    enabled,
     retry: false,
   });
 

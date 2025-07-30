@@ -1,13 +1,17 @@
 import styled from "styled-components";
+import { useState } from "react";
 import { format } from "date-fns";
 import {
   HiOutlineDocumentText,
   HiOutlineAcademicCap,
   HiOutlineUser,
+  HiOutlineCheckCircle,
 } from "react-icons/hi2";
 import DataItem from "../../ui/DataItem";
+import Button from "../../ui/Button";
+import { useUploadScrutinizedFiles } from "../boe/useUploadScrutinizedFiles";
+import toast from "react-hot-toast";
 
-// Your provided styled components
 const StyledPaperDataBox = styled.section`
   background-color: var(--color-grey-0);
   border: 1px solid var(--color-grey-100);
@@ -93,7 +97,7 @@ const Status = styled.span`
       : "var(--color-grey-700)"};
 `;
 
-function PaperDataBox({ paper }) {
+function PaperDataBox({ paper, role }) {
   if (!paper) return null;
 
   const {
@@ -107,7 +111,46 @@ function PaperDataBox({ paper }) {
     created_at,
     updated_at,
     approved_by,
+    qp_file_url,
+    scheme_file_url,
+    storage_folder_path,
   } = paper;
+  const [isEditing, setIsEditing] = useState(false);
+  //  State to hold selected files for uploading
+  const [scrutinizedQP, setScrutinizedQP] = useState(null);
+  const [scrutinizedSchema, setScrutinizedSchema] = useState(null);
+
+  const { mutate: uploadFiles, isLoading } = useUploadScrutinizedFiles({
+    onSuccess: () => {
+      // Close the upload form
+      setIsEditing(false);
+      // Reset file inputs
+      setScrutinizedQP(null);
+      setScrutinizedSchema(null);
+    },
+  });
+
+  function handleUpload() {
+    if (!scrutinizedQP || !scrutinizedSchema) {
+      toast.error("Please select both QP and Schema files.");
+      return;
+    }
+    uploadFiles({
+      paper,
+      qpFile: scrutinizedQP,
+      schemaFile: scrutinizedSchema,
+    });
+  }
+
+  function toggleEdit() {
+    setIsEditing((prev) => {
+      if (prev) {
+        setScrutinizedQP(null);
+        setScrutinizedSchema(null);
+      }
+      return !prev;
+    });
+  }
 
   return (
     <StyledPaperDataBox>
@@ -147,6 +190,78 @@ function PaperDataBox({ paper }) {
         )}
       </Section>
 
+      {role === "boe" && (
+        <Section
+          style={{
+            display: "flex",
+            alignItems: "center",
+            paddingTop: 0,
+            paddingBottom: "1rem",
+            width: "100%",
+          }}
+        >
+          {qp_file_url && (
+            <Button
+              as="a"
+              href={qp_file_url}
+              download
+              target="_blank"
+              style={{ marginRight: "1rem" }}
+            >
+              Download QP
+            </Button>
+          )}
+          {scheme_file_url && (
+            <Button as="a" href={scheme_file_url} download target="_blank">
+              Download Schema
+            </Button>
+          )}
+          <div style={{ flex: 1 }} />
+          <Button variant="secondary" onClick={toggleEdit}>
+            {isEditing ? "Cancel" : "Edit Paper"}
+          </Button>
+        </Section>
+      )}
+
+      {/* BoE upload inputs for scrutinized files */}
+      {role === "boe" && isEditing && (
+        <>
+          <Section>
+            <label>
+              Upload Corrected QP (.doc/.docx):
+              <input
+                type="file"
+                accept=".doc,.docx"
+                onChange={(e) => setScrutinizedQP(e.target.files?.[0] || null)}
+                disabled={isLoading}
+              />
+            </label>
+          </Section>
+          <Section>
+            <label>
+              Upload Corrected Schema (.doc/.docx):
+              <input
+                type="file"
+                accept=".doc,.docx"
+                onChange={(e) =>
+                  setScrutinizedSchema(e.target.files?.[0] || null)
+                }
+                disabled={isLoading}
+              />
+            </label>
+          </Section>
+          <Section>
+            <Button
+              onClick={handleUpload}
+              disabled={isLoading || !scrutinizedQP || !scrutinizedSchema}
+            >
+              {isLoading ? "Uploading..." : "Upload Corrected Files"}
+            </Button>
+          </Section>
+        </>
+      )}
+
+      {/* Footer with timestamps */}
       <Footer>
         {created_at && (
           <span>
@@ -155,6 +270,7 @@ function PaperDataBox({ paper }) {
         )}
         {updated_at && created_at !== updated_at && (
           <span>
+            {" "}
             | Updated {format(new Date(updated_at), "EEE, MMM dd yyyy, p")}
           </span>
         )}

@@ -27,7 +27,7 @@ export function useCPapers() {
     error,
   } = useQuery({
     queryKey: ["exam_papers", filters, subjectCode, page],
-    queryFn: () => getPapers({ filters, subjectCode, page }),
+    queryFn: () => getPapers({ filters, search: subjectCode, page }),
   });
 
   // Prefetching
