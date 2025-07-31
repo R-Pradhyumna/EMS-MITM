@@ -23,25 +23,3 @@ export function useUploadScrutinizedFiles({ onSuccess: onSuccessProp } = {}) {
     isLoading: mutation.isLoading,
   };
 }
-
-// import { useMutation, useQueryClient } from "@tanstack/react-query";
-// import toast from "react-hot-toast";
-// import { uploadScrutinizedFiles } from "../../services/apiBoE";
-
-// export function useUploadScrutinizedFiles() {
-//   const queryClient = useQueryClient();
-
-//   const { mutate, isLoading } = useMutation({
-//     mutationFn: ({ paper, qpFile, schemaFile }) =>
-//       uploadScrutinizedFiles(paper, qpFile, schemaFile),
-//     onSuccess: () => {
-//       toast.success("Scrutinized files uploaded successfully!");
-//       queryClient.invalidateQueries({ queryKey: ["exam_papers"] });
-//     },
-//     onError: (err) => {
-//       toast.error(err.message || "Failed to upload scrutinized files.");
-//     },
-//   });
-
-//   return { mutate, isLoading };
-// }

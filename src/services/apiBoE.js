@@ -4,7 +4,7 @@ import { PAGE_SIZE } from "../utils/constants";
 export async function getPapers({ filters = [], search = "", page }) {
   let query = supabase.from("exam_papers").select("*", { count: "exact" });
 
-  query = query.eq("status", "CoE-approved");
+  query = query.neq("status", "Submitted");
 
   // Filter
   filters.forEach((filter) => {

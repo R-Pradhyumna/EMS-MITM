@@ -11,7 +11,7 @@ export function useBPapers() {
   const academicYear = searchParams.get("academic_year");
   const subjectCode = searchParams.get("subject_code") ?? "";
 
-  const filters = [{ field: "status", value: "CoE-approved" }];
+  const filters = [];
   if (academicYear && academicYear !== "all")
     filters.push({ field: "academic_year", value: academicYear });
 

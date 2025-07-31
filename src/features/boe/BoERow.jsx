@@ -87,12 +87,16 @@ function BoERow({
             See details
           </Menus.Button>
 
-          <Menus.Button
-            icon={<HiCheckCircle style={{ color: "var(--color-green-700)" }} />}
-            onClick={() => navigate(`/approve/${paperId}`)}
-          >
-            Approve
-          </Menus.Button>
+          {status === "CoE-approved" && (
+            <Menus.Button
+              icon={
+                <HiCheckCircle style={{ color: "var(--color-green-700)" }} />
+              }
+              onClick={() => navigate(`/approve/${paperId}`)}
+            >
+              Approve
+            </Menus.Button>
+          )}
         </Menus.List>
       </Menus.Menu>
     </Table.Row>
