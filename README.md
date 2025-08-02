@@ -1,6 +1,6 @@
 # 📘 Examination Management System (EMS)
 
-A scalable, secure, and role-based web application designed to manage the end-to-end lifecycle of college examination papers — from submission to approval to time-restricted access. EMS streamlines exam paper workflows for institutions using **React.js**, **Supabase**, and **Google Drive**.
+A scalable, secure, and role-based web application designed to manage the end-to-end lifecycle of college examination papers — from submission to approval to time-restricted access. EMS streamlines exam paper workflows for institutions using **React.js**, **Supabase**.
 
 ---
 
@@ -37,11 +37,11 @@ A scalable, secure, and role-based web application designed to manage the end-to
 
 ## 🔄 Workflow Overview
 
-1. **Faculty** uploads QP & SoV after selecting scheme, semester, dept, subject
-2. **CoE** approves or rejects the submission
-3. **BoE** scrutinizes papers by department, and can approve/request corrections
-4. **CoE** locks the paper after BoE’s review
-5. **Principal** gets access 30 minutes before the exam and can download once
+1. **Faculty** uploads QP & SoV after selecting scheme, semester, dept, subject.
+2. **CoE** approves or rejects the submission.
+3. **BoE** scrutinizes papers by department, and can approve/request corrections.
+4. **CoE** locks the paper after BoE’s review.
+5. **Principal** gets access 30 minutes before the exam and can download one paper per subject.
 
 ---
 
@@ -52,7 +52,7 @@ A scalable, secure, and role-based web application designed to manage the end-to
 - Real-time UI updates with React Query
 - Google Drive integration for file uploads and tracking
 - Responsive UI with support for dark mode
-- Status tracking (`Submitted`, `Pending-CoE`, `Locked`, etc.)
+- Status tracking (`Submitted`, `Pending-CoE`, `Pending-CoE`, `Locked`, `Downloaded`)
 
 ---
 
@@ -69,7 +69,6 @@ A scalable, secure, and role-based web application designed to manage the end-to
 ```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_key
-VITE_DRIVE_FOLDER_ID=your_root_drive_folder_id
 ```
 
 4. Run the app
