@@ -10,10 +10,12 @@ export function useBPapers() {
   // 1. Filter
   const academicYear = searchParams.get("academic_year");
   const subjectCode = searchParams.get("subject_code") ?? "";
-
+  const status = searchParams.get("status") ?? "";
   const filters = [];
   if (academicYear && academicYear !== "all")
     filters.push({ field: "academic_year", value: academicYear });
+  if (status && status !== "all")
+    filters.push({ field: "status", value: status });
 
   // 3. Pagination
   const page = !searchParams.get("page") ? 1 : Number(searchParams.get("page"));

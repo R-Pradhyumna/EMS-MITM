@@ -2,9 +2,18 @@ import Filter from "../../ui/Filter";
 import TableOperations from "../../ui/TableOperations";
 import SearchBar from "../../ui/Searchbar";
 
-function BoETableOperations() {
+function PrincipalTableOperations() {
   return (
     <TableOperations>
+      <Filter
+        filterField="department_name"
+        options={[
+          { value: "all", label: "All" },
+          { value: "ISE", label: "Information Science" },
+          { value: "CSE", label: "Computer Science" },
+        ]}
+      />
+
       <Filter
         filterField="academic_year"
         options={[
@@ -13,19 +22,9 @@ function BoETableOperations() {
         ]}
       />
 
-      <Filter
-        filterField="status"
-        options={[
-          { value: "all", label: "All" },
-          { value: "CoE-approved", label: "CoE-approved" },
-          { value: "BoE-approved", label: "BoE-approved" },
-          { value: "Locked", label: "Locked" },
-        ]}
-      />
-
       <SearchBar />
     </TableOperations>
   );
 }
 
-export default BoETableOperations;
+export default PrincipalTableOperations;

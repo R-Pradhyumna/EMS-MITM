@@ -22,19 +22,18 @@ function CoETableOperations() {
         ]}
       />
 
-      <SearchBar />
-
-      {/* <SortBy
+      <Filter
+        filterField="status"
         options={[
-          { value: "academic_year-asc", label: "Sort by scheme (ascending)" },
-          { value: "academic_year-desc", label: "Sort by scheme(desceding)" },
-          { value: "semester-asc", label: "Sort by semester(1-8)" },
-          {
-            value: "semester-desc",
-            label: "Sort by semester(8-1)",
-          },
+          { value: "all", label: "All" },
+          { value: "Submitted", label: "Submitted" },
+          { value: "CoE-approved", label: "CoE-approved" },
+          { value: "BoE-approved", label: "BoE-approved" },
+          { value: "Locked", label: "Locked" },
+          { value: "Downloaded", label: "Downloaded" },
         ]}
-      /> */}
+      />
+      <SearchBar />
     </TableOperations>
   );
 }

@@ -113,7 +113,6 @@ function PaperDataBox({ paper, role }) {
     approved_by,
     qp_file_url,
     scheme_file_url,
-    storage_folder_path,
   } = paper;
   const [isEditing, setIsEditing] = useState(false);
   //  State to hold selected files for uploading

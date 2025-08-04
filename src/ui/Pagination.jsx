@@ -69,16 +69,16 @@ function Pagination({ count }) {
 
   function nextPage() {
     const next = currentPage === pageCount ? currentPage : currentPage + 1;
-
-    searchParams.set("page", next);
-    setSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", next);
+    setSearchParams(params);
   }
 
   function prevPage() {
     const prev = currentPage === 1 ? currentPage : currentPage - 1;
-
-    searchParams.set("page", prev);
-    setSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams);
+    params.set("page", prev);
+    setSearchParams(params);
   }
 
   if (pageCount <= 1) return null;
@@ -97,7 +97,6 @@ function Pagination({ count }) {
           <HiChevronLeft />
           <span>Previous</span>
         </PaginationButton>
-
         <PaginationButton
           onClick={nextPage}
           disabled={currentPage === pageCount}

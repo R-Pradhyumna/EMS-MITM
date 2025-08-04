@@ -3,7 +3,7 @@ import { useBPaper } from "./../features/boe/useBPaper";
 import ApprovePaper from "../features/paperActivities/ApprovePaper";
 import Spinner from "../ui/Spinner";
 function Approve() {
-  const role = "boe";
+  const role = "coe";
   const usePaperHook = role === "coe" ? useCPaper : useBPaper;
 
   if (!role) return <Spinner />;
