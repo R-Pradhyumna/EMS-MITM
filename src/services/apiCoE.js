@@ -2,7 +2,10 @@ import supabase from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
 
 export async function getPapers({ filters = [], search = "", page }) {
-  let query = supabase.from("exam_papers").select("*", { count: "exact" });
+  let query = supabase
+    .from("exam_papers")
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false });
 
   filters.forEach((filter) => {
     if (filter?.field && filter.value !== undefined && filter.value !== null) {

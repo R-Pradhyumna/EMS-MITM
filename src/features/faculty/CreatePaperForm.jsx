@@ -77,7 +77,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           disabled={isWorking}
           {...register("subject_code", {
             required: "This field is required!",
-            max: 8,
+            maxLength: { value: 8, message: "Max 8 characters" },
           })}
         />
       </FormRow>
@@ -95,11 +95,19 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
 
       <FormRow label="Semester" error={errors?.semester?.message}>
         <Input
-          type="text"
+          type="number"
           id="semester"
           disabled={isWorking}
           {...register("semester", {
             required: "This field is required!",
+            max: {
+              value: 8,
+              message: "Semester cannot be more than 8",
+            },
+            min: {
+              value: 1,
+              message: "Semester cannot be less than 1",
+            },
           })}
         />
       </FormRow>

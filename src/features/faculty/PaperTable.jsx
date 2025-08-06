@@ -4,16 +4,17 @@ import Table from "../../ui/Table";
 import Spinner from "./../../ui/Spinner";
 import PaperRow from "./PaperRow";
 import Empty from "./../../ui/Empty";
+import Pagination from "../../ui/Pagination";
 
 import { useFPapers } from "./useFPapers";
 
 function PaperTable() {
-  const { isLoading, papers } = useFPapers();
+  const { isLoading, papers, count } = useFPapers();
   const [searchParams] = useSearchParams();
 
   if (isLoading) return <Spinner />;
 
-  if (!papers.length) return <Empty resourceName="papers" />;
+  if (!papers || papers.length === 0) return <Empty resourceName="papers" />;
 
   const sortBy = searchParams.get("sortBy") || "academic_year";
   const [field, direction] = sortBy.split("-");
@@ -36,6 +37,9 @@ function PaperTable() {
           data={sortedPapers}
           render={(paper) => <PaperRow paper={paper} key={paper.id} />}
         />
+        <Table.Footer>
+          <Pagination count={count} />
+        </Table.Footer>
       </Table>
     </Menus>
   );

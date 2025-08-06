@@ -1,15 +1,25 @@
 import supabase, { supabaseUrl } from "./supabase";
+import { PAGE_SIZE } from "../utils/constants";
 
-export async function getPapers() {
-  const { data, error } = await supabase
+export async function getPapers({ page }) {
+  let query = supabase
     .from("exam_papers")
-    .select("*")
-    .order("created_at", { ascending: true });
+    .select("*", { count: "exact" })
+    .order("created_at", { ascending: false });
+
+  if (page) {
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    query = query.range(from, to);
+  }
+
+  const { data, error, count } = await query;
 
   if (error) {
     throw new Error("Papers could not be loaded!");
   }
-  return data;
+
+  return { data, count };
 }
 
 export async function getSubjectsForDepartment() {
