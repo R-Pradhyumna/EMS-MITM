@@ -7,7 +7,10 @@ import {
 } from "react-icons/hi2";
 import DataItem from "../../ui/DataItem";
 
-// Your provided styled components
+/**
+ * The main container for the paper data card/box.
+ * Gives border, rounded corners, and background color.
+ */
 const StyledPaperDataBox = styled.section`
   background-color: var(--color-grey-0);
   border: 1px solid var(--color-grey-100);
@@ -15,6 +18,9 @@ const StyledPaperDataBox = styled.section`
   overflow: hidden;
 `;
 
+/**
+ * Header area—colored bar at the top with subject code and status badge.
+ */
 const Header = styled.header`
   background-color: var(--color-brand-500);
   padding: 2rem 4rem;
@@ -45,10 +51,16 @@ const Header = styled.header`
   }
 `;
 
+/**
+ * Used for the main group of data items (subject, uploader, etc).
+ */
 const Section = styled.section`
   padding: 3.2rem 4rem 1.2rem;
 `;
 
+/**
+ * Right-aligned footer, for create/update audit timestamps.
+ */
 const Footer = styled.footer`
   padding: 1.6rem 4rem;
   font-size: 1.2rem;
@@ -56,7 +68,9 @@ const Footer = styled.footer`
   text-align: right;
 `;
 
-// Status badge
+/**
+ * Status badge; color and background are based on the paper status string.
+ */
 const Status = styled.span`
   font-family: "Sono";
   font-weight: 500;
@@ -93,9 +107,22 @@ const Status = styled.span`
       : "var(--color-grey-700)"};
 `;
 
+// --- Main View Component ---
+
+/**
+ * BPaperDataBox
+ * ----------------
+ * Displays a read-only "data card" for an exam paper
+ * (for BoE/approval use case).
+ * Shows main status, subject, uploader, department, semester/year, and timestamps.
+ *
+ * @param {Object}   paper - The paper object to display.
+ */
 function BPaperDataBox({ paper }) {
+  // If no paper loaded yet, render nothing.
   if (!paper) return null;
 
+  // Destructure all relevant metadata and audit fields from the paper object.
   const {
     status,
     subject_name,
@@ -106,39 +133,47 @@ function BPaperDataBox({ paper }) {
     uploaded_by,
     created_at,
     updated_at,
-    approved_by,
+    approved_by, // (not displayed here, but available if needed)
   } = paper;
 
+  // Render the structured, styled paper info box.
   return (
     <StyledPaperDataBox>
       <Header>
+        {/* Icon and subject code on the left */}
         <div>
           <HiOutlineDocumentText />
           <span>{subject_code}</span>
         </div>
+        {/* Status badge (right side of header) */}
         <Status status={status}>
           {status?.replace("-", " ") ?? "Unknown"}
         </Status>
       </Header>
 
       <Section>
+        {/* Subject and code/name */}
         <DataItem icon={<HiOutlineAcademicCap />} label="Subject - ">
           {subject_name} {subject_code && <>({subject_code})</>}
         </DataItem>
 
+        {/* Uploaded by */}
         <DataItem icon={<HiOutlineUser />} label="Uploaded by - ">
           {uploaded_by}
         </DataItem>
 
+        {/* Department */}
         <DataItem icon={<HiOutlineDocumentText />} label="Department - ">
           {department_name}
         </DataItem>
 
+        {/* Semester and academic year */}
         <DataItem icon={<HiOutlineDocumentText />} label="Semester, Year - ">
           {semester}, {academic_year}
         </DataItem>
       </Section>
 
+      {/* Footer: creation and update timestamps, formatted for readability */}
       <Footer>
         {created_at && (
           <span>

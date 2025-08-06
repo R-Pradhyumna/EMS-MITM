@@ -2,9 +2,23 @@ import Filter from "../../ui/Filter";
 import TableOperations from "../../ui/TableOperations";
 import SearchBar from "../../ui/Searchbar";
 
+/**
+ * CoETableOperations
+ * -------------------
+ * Renders the operations bar for the CoE exam papers table.
+ * Provides:
+ *  - Department, academic year, and status filters
+ *  - A search bar for quick lookup (by subject code, etc)
+ *  - All controls are laid out with TableOperations as the container
+ *
+ * To be positioned above or adjacent to the main CoETable. Relies on
+ * context or parent handlers to wire up filter/search state to data fetching.
+ */
 function CoETableOperations() {
   return (
+    // Container for all table-level operations and controls
     <TableOperations>
+      {/* Department Name filter: lets user filter by ISE, CSE, or show All */}
       <Filter
         filterField="department_name"
         options={[
@@ -14,6 +28,7 @@ function CoETableOperations() {
         ]}
       />
 
+      {/* Academic Year filter: select 2023 or show All years */}
       <Filter
         filterField="academic_year"
         options={[
@@ -22,6 +37,7 @@ function CoETableOperations() {
         ]}
       />
 
+      {/* Status filter: filter by submission/approval/download status */}
       <Filter
         filterField="status"
         options={[
@@ -33,6 +49,8 @@ function CoETableOperations() {
           { value: "Downloaded", label: "Downloaded" },
         ]}
       />
+
+      {/* Search Bar: for searching papers by code, name, etc */}
       <SearchBar />
     </TableOperations>
   );

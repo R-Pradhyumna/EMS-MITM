@@ -1,61 +1,65 @@
 /**
- * Groups papers by subject_code for PrincipalTable row-wise rendering.
+ * Groups exam papers by their subject_code for PrincipalTable row-wise rendering.
  *
- * @param {Array} papers - Flat array of paper objects (as returned from the database query)
- * @param {Object} downloadedSubjectsMap - (Optional) Object mapping subject_code to true/false if subject was already downloaded (for UI lock state)
- * @param {Number} papersPerRow - How many papers to show per row (slots); default is 5.
+ * @param {Array<Object>} papers - Flat array of paper objects (typically from DB query).
+ * @param {Object} downloadedSubjectsMap - Optional: map of subject_code to true/false if previously downloaded (for UI lock state/per-row disable).
+ * @param {Number} papersPerRow - How many paper "slots" to show per row (UI columns), default is 5.
+ * @returns {Array<Object>} Array of subject-grouped rows, each with subject_code, subject details,
+ *                         a capped-and-padded papers array (length = papersPerRow), and lock state.
  *
- * @returns {Array} Array of objects, each representing one table row:
- *   [
- *     {
- *       subject_code,
- *       subject_name,
- *       academic_year,
- *       semester,
- *       papers: [paper, ... null slots],
- *       downloaded // Boolean: is this row already locked by download?
- *     }
- *   ]
+ * Example returned row format:
+ * [
+ *   {
+ *     subject_code: "18CS32",
+ *     subject_name: "Data Structures",
+ *     academic_year: "2023",
+ *     semester: "4",
+ *     papers: [paperObj, paperObj, null, null, null], // always length = papersPerRow
+ *     downloaded: true
+ *   },
+ *   ...
+ * ]
  */
 export function groupPapersBySubject(
   papers,
-  downloadedSubjectsMap = {}, // { subject_code: true } if row is downloaded already for UI
+  downloadedSubjectsMap = {},
   papersPerRow = 5
 ) {
-  // This will accumulate all rows grouped by subject_code
+  // Use object to group papers per subject_code
   const grouped = {};
 
-  // Loop through all paper objects
+  // 1. Grouping step: iterate through flat papers array
   for (const paper of papers) {
     const code = paper.subject_code;
-    // If this subject_code group does not exist yet, create it
+    // If this subject code hasn't been seen, start new group row
     if (!grouped[code]) {
       grouped[code] = {
-        subject_code: code, // Unique key for the row group
-        subject_name: paper.subject_name, // Always use the same subject name for group
-        academic_year: paper.academic_year, // Useful for display or sorting/filtering
-        semester: paper.semester, // Ditto
-        papers: [], // Will hold all paper objects for this subject
-        // Whether this row is locked/disabled for download in the UI
-        downloaded: !!downloadedSubjectsMap[code],
+        subject_code: code,
+        subject_name: paper.subject_name, // Consistent per group
+        academic_year: paper.academic_year, // For filters, sort, display
+        semester: paper.semester,
+        papers: [],
+        downloaded: !!downloadedSubjectsMap[code], // UI disables download for this subject row
       };
     }
-    // Push current paper into the correct group
+    // Place this paper in the subject's group
     grouped[code].papers.push(paper);
   }
 
-  // Now for UI rendering: cap + fill the paper list for each row
+  // 2. Post-processing for UI:
+  //   - Sort by created_at (oldest first, can change as needed)
+  //   - Pad/truncate papers array to exact "paper slot" count
   Object.values(grouped).forEach((row) => {
-    // Optional: sort by creation date (oldest to newest)
+    // Sort papers for consistent order (by created_at asc)
     row.papers.sort((a, b) => (a.created_at < b.created_at ? -1 : 1));
-    // Fill with nulls to always have exactly N paper slots per row
+    // Pad with nulls (if less than papersPerRow)
     while (row.papers.length < papersPerRow) {
       row.papers.push(null);
     }
-    // Ensure the array never grows beyond the allowed number of slots
+    // Enforce paper array length = papersPerRow (truncate any extras)
     row.papers = row.papers.slice(0, papersPerRow);
   });
 
-  // Return as a plain array (rows for your table)
+  // 3. Return the grouped rows as an array, ready for table consumption
   return Object.values(grouped);
 }
