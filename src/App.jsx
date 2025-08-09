@@ -15,6 +15,7 @@ import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
 import Paper from "./pages/Paper";
 import Approve from "./pages/Approve";
+import Dashboard from "./pages/Dashboard";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ function App() {
             <Route path="homepage" element={<HomePage />} />
             <Route path="faculty" element={<Faculty />} />
             <Route path="coe" element={<CoE />} />
+            <Route path="dashboard" element={<Dashboard />} />
             <Route path="boe" element={<BoE />} />
             <Route path="papers/:id" element={<Paper />} />
             <Route path="approve/:id" element={<Approve />} />

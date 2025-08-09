@@ -1,6 +1,8 @@
 import Filter from "../../ui/Filter";
 import TableOperations from "../../ui/TableOperations";
 import SearchBar from "../../ui/Searchbar";
+import Button from "../../ui/Button";
+import { useNavigate } from "react-router-dom";
 
 /**
  * CoETableOperations
@@ -15,6 +17,7 @@ import SearchBar from "../../ui/Searchbar";
  * context or parent handlers to wire up filter/search state to data fetching.
  */
 function CoETableOperations() {
+  const navigate = useNavigate();
   return (
     // Container for all table-level operations and controls
     <TableOperations>
@@ -52,6 +55,8 @@ function CoETableOperations() {
 
       {/* Search Bar: for searching papers by code, name, etc */}
       <SearchBar />
+      {/* Button to navigate to CoE dashboard */}
+      <Button onClick={() => navigate(`/dashboard`)}>Visit Dashboard</Button>
     </TableOperations>
   );
 }

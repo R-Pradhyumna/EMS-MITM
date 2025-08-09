@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 const SubCode = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
+  text-align: left;
   color: var(--color-grey-600);
   font-family: "Sono";
 `;
@@ -16,12 +17,14 @@ const SubCode = styled.div`
 const SubName = styled.div`
   font-family: "Sono";
   font-weight: 600;
+  text-align: left;
 `;
 
 // Styled cell for semester: moderately bold and green-accented
 const Semester = styled.div`
   font-family: "Sono";
   font-weight: 500;
+  text-align: left;
   color: var(--color-green-700);
 `;
 

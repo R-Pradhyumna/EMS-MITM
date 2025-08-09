@@ -11,6 +11,7 @@ import CreatePaperForm from "./CreatePaperForm";
 const SubCode = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
+  text-align: left;
   color: var(--color-grey-600);
   font-family: "Sono";
 `;
@@ -19,6 +20,7 @@ const SubCode = styled.div`
 const SubName = styled.div`
   font-family: "Sono";
   font-weight: 600;
+  text-align: left;
 `;
 
 // Semester, a little more colorful
@@ -26,6 +28,7 @@ const Semester = styled.div`
   font-family: "Sono";
   font-weight: 500;
   color: var(--color-green-700);
+  text-align: left;
 `;
 
 // Status badge: color & background depend on status value

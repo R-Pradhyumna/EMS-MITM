@@ -6,9 +6,9 @@ import Spinner from "../../ui/Spinner";
 import Pagination from "../../ui/Pagination";
 import PrincipalRow from "./PrincipalRow";
 
-import { usePPapers } from "./usePPapers";
 import { PAPER_SLOTS } from "../../utils/constants";
 import { useDownloadPaper } from "./useDownloadPaper";
+import { usePPapers } from "./usePPapers";
 
 /**
  * PrincipalTable

@@ -6,6 +6,7 @@ import {
   HiOutlineUserGroup,
   HiAcademicCap,
   HiGlobeAlt,
+  HiCog6Tooth,
 } from "react-icons/hi2";
 
 const NavList = styled.ul`

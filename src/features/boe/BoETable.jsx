@@ -28,7 +28,7 @@ function BoETable() {
   // Render the main BoE table with menus and all rows
   return (
     <Menus>
-      <Table columns="1.4fr 2fr 2.4fr 1.4fr 1fr 3.2rem">
+      <Table columns="1.4fr 1.8fr 2.2fr 1fr 1fr 1fr">
         <Table.Header>
           <div>Subject Code</div>
           <div>Scheme/Academic Year</div>

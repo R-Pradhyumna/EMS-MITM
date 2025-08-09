@@ -4,6 +4,7 @@ import Sidebar from "./Sidebar";
 import styled from "styled-components";
 
 const StyledAppLayout = styled.div`
+  background-color: var(--color-grey-100);
   display: grid;
   grid-template-columns: 26rem 1fr;
   grid-template-rows: auto 1fr;
@@ -11,7 +12,7 @@ const StyledAppLayout = styled.div`
 `;
 
 const Main = styled.main`
-  background-color: var(--color-grey-50);
+  background-color: var(--color-grey-100);
   padding: 4rem 4.8rem 6.4rem;
   overflow: scroll;
   overflow: -moz-hidden-none;
@@ -23,6 +24,7 @@ const Main = styled.main`
 `;
 
 const Container = styled.div`
+  background-color: var(--color-grey-100);
   max-width: 120rem;
   margin: 0 auto;
   display: flex;

@@ -56,6 +56,7 @@ export async function getPapers({ filters = [], search = "", page, date }) {
   return { data: paged, count };
 }
 
+// Records that a principal-user has downloaded a specific paper for a subject on a given exam date
 export async function downloadPaper(
   principal_employee_id, // The logged-in user's employee id (string)
   subject_id, // Which subject (int)

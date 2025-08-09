@@ -1,24 +1,14 @@
-import CoERow from "./CoERow";
+import DashboardRow from "./DashboardRow";
 import Table from "../../ui/Table";
 import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
 import Spinner from "../../ui/Spinner";
 import Pagination from "../../ui/Pagination";
-import { useCPapers } from "./useCPapers";
+import { useDPapers } from "./useDPapers";
 
-/**
- * CoETable
- * ----------
- * Renders the Committee of Examinations (CoE) view/table for exam papers.
- * Handles:
- *  - Fetching all (paginated) papers via useCPapers
- *  - Displays spinner while loading, "empty" state if none
- *  - Shows paginated, interactive table with row-level menus/actions
- *  - Integrates with CoERow for per-paper logic and conditional menu actions
- */
-function CoETable() {
+function DashboardTable() {
   // Custom hook loads data, loading state, and total count for pagination
-  const { papers = [], isLoading, count } = useCPapers();
+  const { papers = [], isLoading, count } = useDPapers();
 
   // Show loading indicator while waiting for API/data
   if (isLoading) return <Spinner />;
@@ -26,7 +16,7 @@ function CoETable() {
   // Show custom "empty" state if there are no papers returned after loading
   if (!papers.length) return <Empty resourceName="papers" />;
 
-  // Main render: interactive table with custom columns for CoE workflow
+  // Main render: interactive table with custom columns for Dashboard workflow
   return (
     <Menus>
       {/* <Table columns="1.4fr 2fr 2.4fr 1.4fr 1fr 3.2rem"> */}
@@ -36,17 +26,16 @@ function CoETable() {
           <div>Academic Year</div>
           <div>Subject Name</div>
           <div>Semester</div>
-          <div>Status</div>
-          <div></div> {/* Empty for row actions */}
+          <div>Schema File</div>
         </Table.Header>
 
-        {/* Render all rows. Each row handles its own actions/logic via CoERow */}
+        {/* Render all rows. Each row handles its own actions/logic via DashboardRow */}
         <Table.Body
           data={papers}
-          render={(paper) => <CoERow key={paper.id} paper={paper} />}
+          render={(paper) => <DashboardRow key={paper.id} paper={paper} />}
         />
 
-        {/* Paginate using total count (provided by useCPapers) */}
+        {/* Paginate using total count (provided by useDPapers) */}
         <Table.Footer>
           <Pagination count={count} />
         </Table.Footer>
@@ -55,4 +44,4 @@ function CoETable() {
   );
 }
 
-export default CoETable;
+export default DashboardTable;

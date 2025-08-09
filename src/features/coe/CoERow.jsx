@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 const SubCode = styled.div`
   font-size: 1.6rem;
   font-weight: 600;
+  text-align: left;
   color: var(--color-grey-600);
   font-family: "Sono";
 `;
@@ -17,6 +18,7 @@ const SubCode = styled.div`
 const SubName = styled.div`
   font-family: "Sono";
   font-weight: 600;
+  text-align: left;
 `;
 
 // Styled cell for Semester, with accent color
@@ -24,6 +26,7 @@ const Semester = styled.div`
   font-family: "Sono";
   font-weight: 500;
   color: var(--color-green-700);
+  text-align: left;
 `;
 
 // Styled cell for the Status badge, color-coded by status prop
@@ -32,7 +35,7 @@ const Status = styled.div`
   font-weight: 500;
   padding: 0.4rem 1.2rem;
   border-radius: var(--border-radius-sm);
-  text-align: center;
+  text-align: left;
   width: fit-content;
   white-space: nowrap;
 
