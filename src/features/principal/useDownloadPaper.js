@@ -22,52 +22,39 @@ import { downloadPaper } from "../../services/apiPrincipal";
  *     subject_code, qp_file_url
  *   });
  */
+
 export function useDownloadPaper({ onSuccess, onError } = {}) {
-  // React Query client for invalidating/refreshing cached queries after action
+  // Hook to get React Query's cache control
   const queryClient = useQueryClient();
 
-  // Set up mutation for the "record download + lock row" backend call
+  // Setup mutation hook for downloading a paper
+  // - mutationFn: backend API call to record the download and lock this paper
+  // - onSuccess: called after backend response, shows toast, invalidates cache, triggers parent success callback
+  // - onError: handles API error, shows toast, triggers parent error callback
   const mutation = useMutation({
-    // mutationFn: takes data describing principal/subject/paper, only sends what backend needs
-    mutationFn: ({
-      principal_employee_id,
-      subject_id,
-      exam_date,
-      downloaded_paper_id,
-      subject_code, // (passed for UI only)
-      qp_file_url, // (passed for UI only)
-    }) =>
-      // Only send what's needed by backend insert function (does not use subject_code/qp_file_url)
-      downloadPaper(
-        principal_employee_id,
-        subject_id,
-        exam_date,
-        downloaded_paper_id
-      ),
+    // Calls the backend API/service
+    mutationFn: ({ downloaded_paper_id }) => downloadPaper(downloaded_paper_id),
 
-    // On successful download/lock: toast, cache refresh, parent callback
     onSuccess: (data, variables, context) => {
+      // Show success toast to user
       toast.success("Download recorded successfully!");
-      queryClient.invalidateQueries({
-        queryKey: ["principal_paper_downloads"],
-      });
-      // Call parent onSuccess with all response/variables merged for easy UI (e.g. file URL, subject_code)
+      // Invalidate the 'exam_papers' query so the UI fetches new status/data
+      queryClient.invalidateQueries({ queryKey: ["exam_papers"] });
+      // If parent provides extra onSuccess logic (UI integration, session lockout etc), run it
       if (onSuccess) onSuccess({ ...variables, ...data }, context);
     },
 
-    // On backend error (unique-constraint or otherwise): show toast, parent handler
     onError: (error, variables, context) => {
-      toast.error(
-        error.message ||
-          "You have already downloaded a paper for this subject/exam."
-      );
-      if (onError) onError(error, variables, context); // call parent if provided
+      // Show error to user if download or lockout fails
+      toast.error(error.message || "Could not record or mark download.");
+      // If parent provides extra onError logic, run it (e.g., local UI/session lockout even on failure)
+      if (onError) onError(error, variables, context);
     },
   });
 
-  // Expose only the mutate func and loading flag needed for triggering and disabling UI
+  // Return mutate function for triggering download and loading state for UI
   return {
-    mutate: mutation.mutate, // To use: mutate({ ...params })
+    mutate: mutation.mutate,
     isLoading: mutation.isLoading,
   };
 }

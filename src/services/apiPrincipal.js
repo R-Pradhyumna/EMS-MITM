@@ -3,94 +3,92 @@ import { PAGE_SIZE } from "../utils/constants";
 import { formatISO, startOfDay, endOfDay } from "date-fns";
 import { groupPapersBySubject } from "./../features/principal/groupPapersBySubject";
 
-// Gets a paginated, grouped list of Locked exam papers for a given day and filters
+/**
+ * getPapers
+ * ---------
+ * Fetches a paginated, grouped list of exam papers for the Principal.
+ * - Supports dynamic filters (department, year, etc.), keyword search, and date-based selection.
+ * - Always includes both "Locked" and "Downloaded" papers for that date,
+ *   letting frontend show all download slots and disable downloaded ones.
+ * - Groups papers so each row is a subject with its N slots (papers).
+ * - Returns just the current page plus total count for pagination.
+ */
 export async function getPapers({ filters = [], search = "", page, date }) {
-  // 1. Prepare the date range for the query, as ISO strings
-  //    - If date is supplied, use that. Otherwise, use today.
+  // 1. Prepare the date range for the query (defaults to today if not provided)
+  //    Format as ISO strings for Supabase range query
   const d = date ? new Date(date) : new Date();
-  //    - Get the start and end of that day for querying papers on a specific day
   const start = formatISO(startOfDay(d));
   const end = formatISO(endOfDay(d));
 
-  // 2. Build the base Supabase query for exam_papers
-  //    - Select all columns ("*")
-  //    - Only include "Locked" papers
-  //    - Only include papers with 'exam_datetime' in the date range
+  // 2. Build base Supabase query
+  //    - Only select papers meeting date range AND
+  //    - status IN ('Locked', 'Downloaded') so UI can show both available and already-touched slots
   let query = supabase
     .from("exam_papers")
     .select("*")
-    .eq("status", "Locked")
+    .in("status", ["Locked", "Downloaded"])
     .gte("exam_datetime", start)
     .lte("exam_datetime", end);
 
-  // 3. Apply any additional dynamic filters (such as department, semester, etc.)
-  //    - Each filter must specify a column (field) and value
+  // 3. Apply dynamic filters (department, year, etc.)
+  //    For each filter: query.eq(column, value)
   filters.forEach((filter) => {
     if (filter?.field && filter.value) {
-      query = query.eq(filter.field, filter.value); // add to query chain
+      query = query.eq(filter.field, filter.value);
     }
   });
 
-  // 4. If the user typed something in the search box, add a case-insensitive 'subject_code' match
+  // 4. Apply subject code search if provided by user
+  //    ilike = case-insensitive partial match
   if (search && search.trim() !== "") {
     query = query.ilike("subject_code", `%${search.trim()}%`);
   }
 
-  // 5. Actually run the query! Await the result from Supabase.
+  // 5. Execute the Supabase query (await the result)
   const { data, error } = await query;
 
-  // 6. Handle any errors from Supabase; throw if there's an error
+  // 6. Handle Supabase errors clearly
   if (error) throw new Error("Papers could not be loaded!");
 
-  // 7. Group the resulting papers (data array) by subject_code
-  //    - This creates an array where each element is a "row", possibly with subarrays per subject_code
+  // 7. Group papers by subject_code
+  //    Each group represents a subject row holding all papers/slots for frontend table
   const grouped = groupPapersBySubject(data ?? []);
 
-  // 8. Paginate the grouped list, showing only PAGE_SIZE number of "rows"
-  const count = grouped.length; // How many grouped items there are (for pagination UI)
-  const from = (page - 1) * PAGE_SIZE; // Which index to start from, based on the page number
-  const to = from + PAGE_SIZE; // Which index to end with
-  const paged = grouped.slice(from, to); // Get just this page's items
+  // 8. Paginate results: only PAGE_SIZE "rows" (subject groups) per page
+  const count = grouped.length; // total number of grouped subjects/rows for pagination
+  const from = (page - 1) * PAGE_SIZE;
+  const to = from + PAGE_SIZE;
+  const paged = grouped.slice(from, to);
 
-  // 9. Return the paginated data and the total count to the caller (usually a React query hook/component)
+  // 9. Return paginated group list and full count
+  //    - data: paged list of grouped subjects for frontend table
+  //    - count: total number of subject rows (for pagination controls)
   return { data: paged, count };
 }
 
-// Records that a principal-user has downloaded a specific paper for a subject on a given exam date
-export async function downloadPaper(
-  principal_employee_id, // The logged-in user's employee id (string)
-  subject_id, // Which subject (int)
-  exam_date, // The exam date (string or Date, expected in correct format)
-  downloaded_paper_id // The id of the paper being downloaded
-) {
-  // 1. Try to insert a row in principal_paper_downloads
-  //    - The table tracks (principal, subject, date, paper_downloaded)
-  //    - This is used to enforce download lock: only one record per (principal, subject, exam_date) allowed
+/**
+ * downloadPaper
+ * -------------
+ * Marks one paper as "Downloaded" in the database.
+ * - Sets 'is_downloaded' and 'downloaded_at'.
+ * - Changes status to 'Downloaded' (so future queries can show disabled slots, but not hide them).
+ * - Returns raw updated paper data for frontend to refresh state.
+ */
+export async function downloadPaper(downloaded_paper_id) {
   const { data, error } = await supabase
-    .from("principal_paper_downloads")
-    .insert([
-      {
-        principal_employee_id,
-        subject_id,
-        exam_date,
-        downloaded_paper_id,
-      },
-    ]);
+    .from("exam_papers")
+    .update({
+      is_downloaded: true,
+      downloaded_at: new Date().toISOString(),
+      status: "Downloaded", // marks this paper as downloaded so future fetches can show disabled UI
+    })
+    .eq("id", downloaded_paper_id)
+    .select();
 
-  // 2. If Supabase returns an error, check what kind it is:
   if (error) {
-    console.error("Supabase error:", error); // Log full error for debugging
-    // a. If error.code is "23505", the unique constraint failed — principal already downloaded for that subject/date
-    if (error.code === "23505") {
-      // Postgres unique constraint violation
-      throw new Error(
-        "You have already downloaded a paper for this subject/exam."
-      );
-    }
-    // b. Some other insert problem (data missing, foreign key, or server error)
-    throw new Error("Could not record the download.");
+    console.error("Failed to update exam_papers:", error);
+    throw new Error("Could not record or mark download.");
   }
 
-  // 3. If successful, return the data payload (may be undefined if RLS SELECT is not enabled, this is fine)
-  return data;
+  return data; // Paper object with updated status/flags
 }

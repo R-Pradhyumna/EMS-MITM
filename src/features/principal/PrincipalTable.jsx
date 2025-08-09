@@ -1,54 +1,58 @@
 import { useState, useEffect } from "react";
 
+import Pagination from "../../ui/Pagination";
+import Spinner from "../../ui/Spinner";
 import Table from "../../ui/Table";
 import Noexam from "./../../ui/Noexam";
-import Spinner from "../../ui/Spinner";
-import Pagination from "../../ui/Pagination";
 import PrincipalRow from "./PrincipalRow";
 
-import { PAPER_SLOTS } from "../../utils/constants";
 import { useDownloadPaper } from "./useDownloadPaper";
 import { usePPapers } from "./usePPapers";
+import { PAPER_SLOTS } from "../../utils/constants";
 
 /**
  * PrincipalTable
  * --------------
- * Displays a paginated table of subject-paper download "slots" for the Principal view,
- * with lockout-by-session for already-downloaded subjects and per-row download loading UI.
+ * Displays a table of subjects, each with a fixed number of paper slots.
+ * - Tracks which subjects have already been downloaded THIS SESSION/TAB (using Set and sessionStorage).
+ * - Locks out further downloads for a subject in this UI as soon as one is picked.
+ * - Shows spinner UI per-row while download is in progress.
+ * - Integrates pagination and handles empty/exam-not-started states.
  */
 function PrincipalTable() {
   // Fetch processed/grouped subject-paper rows and page count from custom query hook
   // - rows: array of grouped subjects, each with an array of paper objects
-  // - isLoading: boolean flag for server fetch in progress
-  // - count: total number of subject rows for pagination UI
+  // - isLoading: loading flag for server fetch
+  // - count: total subject rows (for pagination)
   const { isLoading, papers: rows, count } = usePPapers();
 
-  // Set of subject_codes already 'locked' this session (downloaded/locked)
-  // (used to disable download buttons on these rows)
+  // State: Set of subject_codes already 'locked' THIS SESSION (i.e., downloaded/locked)
+  // Used to instantly disable download buttons for these subjects in the UI.
   const [downloadedSubjectCodes, setDownloadedSubjectCodes] = useState(
     new Set()
   );
 
-  // State: index of the row that's currently "downloading" (for spinner-per-row UI)
+  // State: row index of the row currently "downloading" (per-row spinner)
   const [currentDownloading, setCurrentDownloading] = useState(null);
 
-  // Download mutation: for recording download, locking that subject, & opening the QP file in new tab
-  // - mutate: function to call for triggering (handleDownload will use this)
-  // - isDownloading: true if API action is in progress
+  // Download paper mutation:
+  // - When download is successful, adds subject_code to Set and sessionStorage.
+  // - Also opens downloaded file in new tab (qp_file_url)
+  // - On backend error: also "defensively" locks the subject if download fails for duplicate
   const { mutate: downloadPaperMutate, isLoading: isDownloading } =
     useDownloadPaper({
       onSuccess: ({ qp_file_url, subject_code }) => {
-        // Lock this subject_code in state and sessionStorage as soon as a download is recorded
+        // After a successful download, lock this subject code in memory state and session storage
         setDownloadedSubjectCodes((prev) => {
           const next = new Set(prev);
           next.add(subject_code);
           return next;
         });
         sessionStorage.setItem("downloaded_" + subject_code, "1");
-        window.open(qp_file_url, "_blank");
+        window.open(qp_file_url, "_blank"); // Show downloaded paper in a new tab
       },
       onError: (error, variables) => {
-        // If backend says "already downloaded", immediately lock as well (defensive)
+        // Defensive: If backend says already downloaded, still lock out subject immediately in UI
         if (
           error.message &&
           error.message.includes("already downloaded") &&
@@ -64,8 +68,8 @@ function PrincipalTable() {
       },
     });
 
-  // On mount or when `rows` changes, restore download locks from sessionStorage
-  // (this keeps the UI consistent even after reloads within a session)
+  // On mount or whenever 'rows' change (e.g. after refetch), restore any locks from sessionStorage.
+  // This way reloads and pagination don't lose session lock state for subjects already downloaded.
   useEffect(() => {
     if (!rows || rows.length === 0) return;
 
@@ -76,7 +80,7 @@ function PrincipalTable() {
       }
     });
 
-    // Only update state if changed, to avoid infinite effect loops
+    // Only update state if there was a change (prevents infinite effect loops)
     const restoredStr = Array.from(restored).sort().join(",");
     const currentStr = Array.from(downloadedSubjectCodes).sort().join(",");
     if (restoredStr !== currentStr) {
@@ -85,30 +89,31 @@ function PrincipalTable() {
     // eslint-disable-next-line
   }, [rows]);
 
-  // Show a loading spinner while fetching subject-paper data
+  // Show a loading spinner while fetching subject-paper data from API/hook
   if (isLoading) return <Spinner />;
-  // Show "No exam papers" state if there are no subject-paper rows to display
+
+  // Show a "no exam papers found" state if there are no subject-paper rows to display
   if (!rows.length) return <Noexam />;
 
   /**
-   * Handler for user clicking a Download QP button
-   * - rowIdx: index of the row in the table (used for UI busy display)
-   * - paper: the specific paper object being downloaded (holds subject_id, exam_datetime, etc)
+   * Handler for clicking a Download QP button in any row/slot:
+   * - Tracks the active row being downloaded (for showing loading spinner only for that row)
+   * - Triggers the download mutation, passing current paper and subject context
    */
   function handleDownload(paper, rowIdx) {
-    setCurrentDownloading(rowIdx); // Set loading UI on this row
+    setCurrentDownloading(rowIdx); // Show spinner for this row
     downloadPaperMutate({
-      principal_employee_id: "emp123", // TODO: Replace with dynamic user ID
-      subject_id: paper.subject_id,
-      exam_date: paper.exam_datetime,
-      downloaded_paper_id: paper.id,
-      subject_code: paper.subject_code,
-      rowIdx, // For UI state only; not used on backend
-      qp_file_url: paper.qp_file_url, // Used to open the file after download
+      principal_employee_id: "emp123", // TODO: Replace with real principal/user ID
+      subject_id: paper.subject_id, // Paper's subject DB ID
+      exam_date: paper.exam_datetime, // Context for exam session/date
+      downloaded_paper_id: paper.id, // Unique paper being downloaded
+      subject_code: paper.subject_code, // For UI lockout
+      rowIdx, // UI-only; not sent to backend
+      qp_file_url: paper.qp_file_url, // File to open after success
     });
   }
 
-  // Main render: Table of subject-paper slots with per-row download state and lock icons
+  // Main render: Table of fixed PAPER_SLOTS columns (plus subject code), per-row spinner and per-subject-session lockout
   return (
     <Table columns={`1fr ${"1fr ".repeat(PAPER_SLOTS)}`.trim()}>
       <Table.Header>
@@ -122,13 +127,15 @@ function PrincipalTable() {
         data={rows}
         render={(row, idx) => (
           <PrincipalRow
-            key={idx} // Stable key; okay if row order never changes after initial rendering!
-            row={row} // Row data with subject/group info
+            key={idx} // Stable row key
+            row={row} // Data for this subject and its papers
             rowIdx={idx}
             PAPER_SLOTS={PAPER_SLOTS}
-            onDownload={handleDownload} // Function to trigger when a download slot is used
-            downloaded={downloadedSubjectCodes.has(row.subject_code)} // Has the subject been downloaded (locked for this session)?
-            isLoading={currentDownloading === idx && isDownloading} // Loading only for the current row being fetched
+            onDownload={handleDownload} // Download button callback
+            // 'downloaded' is true if this subject's code is in the UI-locked set: disables ALL buttons for subject in current session/tab
+            downloaded={downloadedSubjectCodes.has(row.subject_code)}
+            // Only show spinner/loading for the row currently being downloaded
+            isLoading={currentDownloading === idx && isDownloading}
           />
         )}
       />

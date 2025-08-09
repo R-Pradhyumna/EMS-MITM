@@ -13,75 +13,92 @@ const SubCode = styled.div`
 /**
  * PrincipalRow
  * -------------
- * Displays a single row in the Principal's papers table,
- * with subject code and a set of paper "slots" (button per paper if available).
+ * Displays a single row in the Principal's papers table:
+ * - Shows subject code
+ * - Renders a set of paper "slots" (always PAPER_SLOTS per row, for grid alignment)
+ *
+ * Behavior:
+ * - Once any paper for this subject is downloaded (for the current session/tab),
+ *   ALL download buttons for this row become disabled for that session.
+ * - Already downloaded papers, if shown, display as "Downloaded".
  *
  * Props:
- * - row:    Object containing { subject_code, papers: [...] }
- * - rowIdx: Numeric index for UI and loading tracking
- * - onDownload: Callback to trigger download (parent will perform lock/update/UI)
- * - PAPER_SLOTS: How many "paper columns" should always be rendered
- * - isLoading: Boolean, true if this row is in-progress of downloading
- * - downloaded: Boolean, true if this subject/row is already locked (disable download)
+ * - row:        { subject_code, papers: [...] }
+ * - rowIdx:     Row's index in the table, for loading spinner
+ * - onDownload: Callback to parent (should invoke backend and handle session lock)
+ * - PAPER_SLOTS: Number of paper columns (table stays aligned even if fewer papers)
+ * - isLoading:  True when download API call is in progress (disables buttons)
+ * - downloaded: True if this subject has been "locked" for this session (UI disables all slots)
  */
 function PrincipalRow({
-  row, // contains subject_code and list of papers for this subject
-  rowIdx, // the index of this row (used for per-row loading UI)
-  onDownload, // parent callback for downloading a paper
-  PAPER_SLOTS, // number of columns/slots to show, for layout consistency
-  isLoading,
-  downloaded,
+  row, // Contains subject_code and array of papers
+  rowIdx, // Numeric index for row-specific logic/UI
+  onDownload, // Parent callback for downloading a paper
+  PAPER_SLOTS, // Table columns to always render
+  isLoading, // If true, this row is in-loading state (api call in progress)
+  downloaded, // If true, this subject is locked for this session (all buttons disabled)
 }) {
-  // Destructure data for convenience
+  // Parse row data
   const { subject_code, papers = [] } = row;
 
-  // Always display PAPER_SLOTS columns:
-  // If fewer than PAPER_SLOTS papers, pad with null (so every row is aligned)
+  // Always show PAPER_SLOTS columns: pad with nulls if not enough papers
   const paddedPapers = [
     ...papers,
     ...Array(Math.max(0, PAPER_SLOTS - papers.length)).fill(null),
   ];
 
-  // Trigger the per-paper download logic
+  // Download handler (calls parent; disables all slots for this subject after one download in this session)
   function handleDownload(paper) {
+    // Only allow if NOT locked in this session, and not already loading
     if (!downloaded && !isLoading) {
-      // Optionally open file immediately—actual locked download
-      // logic (lockout/UI update) always handled in parent after backend response
-      window.open(paper.qp_file_url, "_blank");
       onDownload(paper, rowIdx);
     }
   }
 
-  // Render table row: first cell is subject code, the rest are paper slots with download buttons or dashes
+  // (Optional utility: checks if any paper is marked as downloaded in DB.
+  // Not directly used in disabling since 'downloaded' prop handles session lock.)
+  const anyDownloaded = papers.some((p) => p && p.is_downloaded);
+
+  // Render table row:
+  // - First cell: subject code
+  // - The rest: paper slots (button per paper, dash for filler slots)
   return (
     <Table.Row>
-      {/* Subject Code column */}
+      {/* Subject Code column (bold, left) */}
       <SubCode>{subject_code}</SubCode>
-      {/* Render PAPER_SLOTS columns, each as button if real paper or dash if empty */}
+
+      {/* Render fixed number PAPER_SLOTS columns.
+          Each slot: button if real paper, dash if empty
+          All buttons disabled if:
+            - 'downloaded' (session lock for subject)
+            - 'isLoading' (API busy)
+            - 'paper.is_downloaded' (this slot downloaded in DB)
+      */}
       {paddedPapers.map((paper, idx) => (
         <div
           key={
             paper
-              ? `${subject_code}-${paper.id}` // Unique key for actual paper
-              : `${subject_code}-slot-${idx}` // Key for filler/blank column
+              ? `${subject_code}-${paper.id}` // Unique key for real paper
+              : `${subject_code}-slot-${idx}` // Key for filler slot
           }
         >
           {paper ? (
-            <>
-              {paper.qp_file_url && (
-                <Button
-                  as="button"
-                  // Disable if this subject/row is locked out or row is currently loading
-                  disabled={downloaded || isLoading}
-                  // Initiate download when clicked
-                  onClick={() => handleDownload(paper, rowIdx)}
-                >
-                  Download QP
-                </Button>
-              )}
-            </>
+            <Button
+              as="button"
+              // Button disabling logic:
+              // - 'downloaded' disables all slots for the subject in this session
+              // - 'isLoading' disables during download API
+              // - 'paper.is_downloaded' disables this particular paper by DB flag
+              disabled={downloaded || isLoading || paper.is_downloaded}
+              onClick={() => handleDownload(paper)}
+            >
+              {/* Button label: 
+                  - "Downloaded" for already-downloaded papers
+                  - "Download QP" for available papers */}
+              {paper.is_downloaded ? "Downloaded" : "Download QP"}
+            </Button>
           ) : (
-            // Show a dash for filler/empty slots (keeps table aligned)
+            // Render dash if slot is just a grid filler
             "-"
           )}
         </div>
