@@ -16,55 +16,67 @@ import AppLayout from "./ui/AppLayout";
 import Paper from "./pages/Paper";
 import Approve from "./pages/Approve";
 import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./ui/ProtectedRoute";
+import Account from "./pages/Account";
+import { DarkModeProvider } from "./context/DarkModeContext";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ReactQueryDevtools initialIsOpen={false} />
-      <GlobalStyles />
-      <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route index element={<Navigate replace to="homepage" />} />
-            <Route path="homepage" element={<HomePage />} />
-            <Route path="faculty" element={<Faculty />} />
-            <Route path="coe" element={<CoE />} />
-            <Route path="dashboard" element={<Dashboard />} />
-            <Route path="boe" element={<BoE />} />
-            <Route path="papers/:id" element={<Paper />} />
-            <Route path="approve/:id" element={<Approve />} />
-            <Route path="principal" element={<Principal />} />
-            <Route path="users" element={<Users />} />
-          </Route>
+    <DarkModeProvider>
+      <QueryClientProvider client={queryClient}>
+        <ReactQueryDevtools initialIsOpen={false} />
+        <GlobalStyles />
+        <BrowserRouter>
+          <Routes>
+            <Route
+              element={
+                <ProtectedRoute>
+                  <AppLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Navigate replace to="homepage" />} />
+              <Route path="homepage" element={<HomePage />} />
+              <Route path="faculty" element={<Faculty />} />
+              <Route path="coe" element={<CoE />} />
+              <Route path="dashboard" element={<Dashboard />} />
+              <Route path="boe" element={<BoE />} />
+              <Route path="papers/:id" element={<Paper />} />
+              <Route path="approve/:id" element={<Approve />} />
+              <Route path="principal" element={<Principal />} />
+              <Route path="users" element={<Users />} />
+              <Route path="account" element={<Account />} />
+            </Route>
 
-          <Route path="login" element={<Login />} />
-          <Route path="*" element={<PageNotFound />} />
-        </Routes>
-      </BrowserRouter>
+            <Route path="login" element={<Login />} />
+            <Route path="*" element={<PageNotFound />} />
+          </Routes>
+        </BrowserRouter>
 
-      <Toaster
-        position="top-center"
-        gutter={12}
-        containerStyle={{ margin: "8px" }}
-        toastOptions={{
-          success: {
-            duration: 3000, //3 seconds
-          },
-          error: {
-            duration: 5000, //5 seconds
-          },
-          style: {
-            fontSize: "16px",
-            maxWidth: "500px",
-            padding: "16px 24px",
-            backgroundColor: "var(--color-grey-0)",
-            color: "var(--color-grey-700)",
-          },
-        }}
-      />
-    </QueryClientProvider>
+        <Toaster
+          position="top-center"
+          gutter={12}
+          containerStyle={{ margin: "8px" }}
+          toastOptions={{
+            success: {
+              duration: 3000, //3 seconds
+            },
+            error: {
+              duration: 5000, //5 seconds
+            },
+            style: {
+              fontSize: "16px",
+              maxWidth: "500px",
+              padding: "16px 24px",
+              backgroundColor: "var(--color-grey-0)",
+              color: "var(--color-grey-700)",
+            },
+          }}
+        />
+      </QueryClientProvider>
+    </DarkModeProvider>
   );
 }
 
