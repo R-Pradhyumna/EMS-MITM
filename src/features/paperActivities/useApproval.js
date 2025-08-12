@@ -27,8 +27,8 @@ export function useApproval({ role }) {
 
   // Helper to decide where to navigate after success, based on role
   function getLanding(role) {
-    if (role === "coe") return "/coe";
-    if (role === "boe") return "/boe";
+    if (role === "CoE") return "/coe";
+    if (role === "BoE") return "/boe";
     return "/papers";
   }
 

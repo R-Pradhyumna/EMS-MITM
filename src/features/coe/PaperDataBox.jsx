@@ -201,7 +201,7 @@ function PaperDataBox({ paper, role }) {
       </Section>
 
       {/* --- BoE (scrutinizer) workflow: download and upload sections --- */}
-      {role === "boe" && (
+      {role === "BoE" && (
         <Section
           style={{
             display: "flex",
@@ -239,7 +239,7 @@ function PaperDataBox({ paper, role }) {
       )}
 
       {/* --- BoE file upload area, shown only in edit mode --- */}
-      {role === "boe" && isEditing && (
+      {role === "BoE" && isEditing && (
         <>
           <Section>
             <label>

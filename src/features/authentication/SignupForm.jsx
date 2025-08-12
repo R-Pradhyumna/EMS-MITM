@@ -13,11 +13,18 @@ function SignupForm() {
   const { register, formState, getValues, handleSubmit, reset } = useForm();
   const { errors } = formState;
 
-  function onSubmit({ fullName, email, password }) {
+  function onSubmit({
+    fullName,
+    email,
+    password,
+    employee_id,
+    department_name,
+    role,
+  }) {
     signup(
-      { fullName, email, password },
+      { fullName, email, password, employee_id, department_name, role },
       {
-        onSettled: reset,
+        onSuccess: reset,
       }
     );
   }
@@ -32,10 +39,42 @@ function SignupForm() {
         />
       </FormRow>
 
+      <FormRow label="Employee ID" error={errors?.employee_id?.message}>
+        <Input
+          type="text"
+          id="employee_id"
+          {...register("employee_id", { required: "This field is required" })}
+        />
+      </FormRow>
+
+      <FormRow label="Department Name" error={errors?.department_name?.message}>
+        <Input
+          type="text"
+          id="department_name"
+          {...register("department_name", {
+            required: "This field is required",
+          })}
+        />
+      </FormRow>
+
+      <FormRow label="Role" error={errors?.role?.message}>
+        <select
+          id="role"
+          {...register("role", { required: "Please select a role" })}
+        >
+          <option value="">-- Select role --</option>
+          <option value="faculty">Faculty</option>
+          <option value="CoE">Controller of Examination</option>
+          <option value="BoE">Board of Examiner</option>
+          <option value="Principal">Principal</option>
+        </select>
+      </FormRow>
+
       <FormRow label="Email address" error={errors?.email?.message}>
         <Input
           type="email"
           id="email"
+          autoComplete="off"
           {...register("email", {
             required: "This field is required",
             pattern: {
@@ -69,8 +108,8 @@ function SignupForm() {
           id="passwordConfirm"
           {...register("passwordConfirm", {
             required: "This field is required",
-            value: (value) =>
-              value === getValues().password || "Passwords need to match",
+            validate: (value) =>
+              value === getValues("password") || "Passwords need to match",
           })}
         />
       </FormRow>
@@ -78,14 +117,16 @@ function SignupForm() {
       <FormRow>
         {/* type is an HTML attribute! */}
         <Button
-          variation="secondary"
+          variation="danger"
           type="reset"
           disabled={isLoading}
           onClick={reset}
         >
           Cancel
         </Button>
-        <Button>Create new user</Button>
+        <Button type="submit" disabled={isLoading}>
+          Create new user
+        </Button>
       </FormRow>
     </Form>
   );

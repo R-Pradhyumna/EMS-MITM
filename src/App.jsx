@@ -10,6 +10,7 @@ import CoE from "./pages/CoE";
 import BoE from "./pages/BoE";
 import Principal from "./pages/Principal";
 import Login from "./pages/Login";
+import Signup from "./pages/Signup";
 import Users from "./pages/Users";
 import PageNotFound from "./pages/PageNotFound";
 import AppLayout from "./ui/AppLayout";
@@ -38,19 +39,73 @@ function App() {
               }
             >
               <Route index element={<Navigate replace to="homepage" />} />
+
               <Route path="homepage" element={<HomePage />} />
-              <Route path="faculty" element={<Faculty />} />
-              <Route path="coe" element={<CoE />} />
-              <Route path="dashboard" element={<Dashboard />} />
-              <Route path="boe" element={<BoE />} />
+
+              <Route
+                path="faculty"
+                element={
+                  <ProtectedRoute allowedRoles={["faculty"]}>
+                    <Faculty />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="coe"
+                element={
+                  <ProtectedRoute allowedRoles={["CoE"]}>
+                    <CoE />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="dashboard"
+                element={
+                  <ProtectedRoute allowedRoles={["CoE"]}>
+                    <Dashboard />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="boe"
+                element={
+                  <ProtectedRoute allowedRoles={["BoE"]}>
+                    <BoE />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route path="papers/:id" element={<Paper />} />
-              <Route path="approve/:id" element={<Approve />} />
-              <Route path="principal" element={<Principal />} />
+
+              <Route
+                path="approve/:id"
+                allowedRoles={["CoE", "BoE"]}
+                element={
+                  <ProtectedRoute allowedRoles={["CoE", "BoE"]}>
+                    <Approve />
+                  </ProtectedRoute>
+                }
+              />
+
+              <Route
+                path="principal"
+                element={
+                  <ProtectedRoute allowedRoles={["Principal"]}>
+                    <Principal />
+                  </ProtectedRoute>
+                }
+              />
+
               <Route path="users" element={<Users />} />
+
               <Route path="account" element={<Account />} />
             </Route>
 
             <Route path="login" element={<Login />} />
+            <Route path="signup" element={<Signup />} />
             <Route path="*" element={<PageNotFound />} />
           </Routes>
         </BrowserRouter>

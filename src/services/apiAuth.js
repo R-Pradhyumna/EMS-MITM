@@ -1,6 +1,13 @@
 import supabase from "./supabase";
 
-export async function signUp({ fullName, email, password }) {
+export async function signUp({
+  fullName,
+  email,
+  password,
+  employee_id,
+  department_name,
+  role,
+}) {
   // Save the current session before signing up a new user
   const { data: savedSessionData } = await supabase.auth.getSession();
   const {
@@ -12,12 +19,9 @@ export async function signUp({ fullName, email, password }) {
     options: {
       data: {
         fullName,
-        avatar: "",
       },
     },
   });
-  // Log the entire response for debugging
-  console.log("Sign-up response:", { user, error });
   //If there was a previously authenticated user, restore their session
   // This action should be placed right after signUp, otherwise the authError will stop the restore
   if (savedSessionData) {
@@ -37,6 +41,20 @@ export async function signUp({ fullName, email, password }) {
     };
   }
   if (authError) throw new Error(authError.message);
+
+  // ---- INSERT into custom users table ----
+  // Only proceed if user registration succeeded
+  const { error: dbError } = await supabase.from("users").insert([
+    {
+      employee_id, // Needs to come from form
+      username: fullName,
+      auth_user_id: user.id,
+      department_name, // Needs to come from form
+      role,
+    },
+  ]);
+  if (dbError) throw dbError;
+
   return user;
 }
 
@@ -77,5 +95,25 @@ export async function updateCurrentUser({ password, fullName }) {
   );
 
   if (error) throw new Error(error.message);
-  return updateData;
+  return updatedData;
+}
+
+// Fetch role for the currently authenticated user
+export async function fetchUserRole() {
+  const {
+    data: { user },
+    error: sessionError,
+  } = await supabase.auth.getUser();
+
+  if (sessionError || !user) throw new Error("No authenticated user found!");
+
+  const { data, error } = await supabase
+    .from("users")
+    .select("role")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (error || !data) throw new Error("User role not found in database!");
+
+  return data.role;
 }

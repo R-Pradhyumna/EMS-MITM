@@ -1,13 +1,14 @@
-import { NavLink } from "react-router-dom";
-import styled from "styled-components";
+import { useEffect } from "react";
 import {
-  HiOutlineHome,
-  HiOutlineUsers,
-  HiOutlineUserGroup,
   HiAcademicCap,
   HiGlobeAlt,
-  HiCog6Tooth,
+  HiOutlineHome,
+  HiOutlineUserGroup,
+  HiOutlineUsers,
 } from "react-icons/hi2";
+import { NavLink } from "react-router-dom";
+import styled from "styled-components";
+import { useRole } from "../features/authentication/useRole";
 
 const NavList = styled.ul`
   display: flex;
@@ -54,40 +55,75 @@ const StyledNavLink = styled(NavLink)`
   }
 `;
 
+// Configuration for sidebar links, including allowedRoles
+const navLinksConfig = [
+  {
+    path: "/homepage",
+    label: "Home",
+    icon: <HiOutlineHome />,
+    alwaysShow: true, // Always show Home, even to unauthenticated users
+  },
+  {
+    path: "/faculty",
+    label: "Faculty",
+    icon: <HiOutlineUsers />,
+    allowedRoles: ["faculty"],
+  },
+  {
+    path: "/coe",
+    label: "CoE",
+    icon: <HiAcademicCap />,
+    allowedRoles: ["CoE"],
+  },
+  {
+    path: "/boe",
+    label: "BoE",
+    icon: <HiOutlineUserGroup />,
+    allowedRoles: ["BoE"],
+  },
+  {
+    path: "/principal",
+    label: "Principal",
+    icon: <HiGlobeAlt />,
+    allowedRoles: ["Principal"],
+  },
+];
+
 function MainNav() {
+  const { role, isLoading } = useRole();
+
+  useEffect(() => {
+    console.log("MainNav loaded: role =", role, "isLoading =", isLoading);
+  }, [role, isLoading]);
+
+  let activeLinks;
+
+  if (isLoading || !role) {
+    // Only show Home when not logged in
+    activeLinks = navLinksConfig.filter((link) => link.alwaysShow);
+  } else {
+    // Show Home + links included in user's allowedRoles (if specified)
+    activeLinks = navLinksConfig.filter(
+      (link) =>
+        link.alwaysShow ||
+        !link.allowedRoles ||
+        link.allowedRoles
+          ?.map((r) => r.toLowerCase())
+          .includes(role.toLowerCase())
+    );
+  }
+
   return (
     <nav>
       <NavList>
-        <li>
-          <StyledNavLink to="/homepage">
-            <HiOutlineHome />
-            <span>Home</span>
-          </StyledNavLink>
-        </li>
-        <li>
-          <StyledNavLink to="/faculty">
-            <HiOutlineUsers />
-            <span>Faculty</span>
-          </StyledNavLink>
-        </li>
-        <li>
-          <StyledNavLink to="/coe">
-            <HiAcademicCap />
-            <span>CoE</span>
-          </StyledNavLink>
-        </li>
-        <li>
-          <StyledNavLink to="/boe">
-            <HiOutlineUserGroup />
-            <span>BoE</span>
-          </StyledNavLink>
-        </li>
-        <li>
-          <StyledNavLink to="/principal">
-            <HiGlobeAlt />
-            <span>Principal</span>
-          </StyledNavLink>
-        </li>
+        {activeLinks.map((link) => (
+          <li key={link.path}>
+            <StyledNavLink to={link.path}>
+              {link.icon}
+              <span>{link.label}</span>
+            </StyledNavLink>
+          </li>
+        ))}
       </NavList>
     </nav>
   );

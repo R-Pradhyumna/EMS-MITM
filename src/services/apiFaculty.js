@@ -99,7 +99,7 @@ export async function createEditPapers(newPaper, id) {
     qp_file_type: qp_file[0].type,
     scheme_file_type: scheme_file[0].type,
     storage_folder_path: folderPath,
-    uploaded_by: "EMP001", // TODO: Replace with actual user/employee from auth!
+    uploaded_by: "4MH22IS076", // TODO: Replace with actual user/employee from auth!
     status: "Submitted",
   };
 

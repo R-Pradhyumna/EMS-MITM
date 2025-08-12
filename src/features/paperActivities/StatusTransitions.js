@@ -11,7 +11,7 @@
 const StatusTransitions = {
   // When status is "Submitted"
   Submitted: {
-    coe: {
+    CoE: {
       label: "Approve", // Action button will read: "Approve paper #"
       update: (paper) => ({ status: "CoE-approved" }), // Sets new status
       confirm: (paper) =>
@@ -20,7 +20,7 @@ const StatusTransitions = {
   },
   // When status is "CoE-approved"
   "CoE-approved": {
-    boe: {
+    BoE: {
       label: "Approve", // BoE now approves
       update: (paper) => ({ status: "BoE-approved" }), // Sets next status
       confirm: (paper) =>
@@ -31,7 +31,7 @@ const StatusTransitions = {
   },
   // When status is "BoE-approved"
   "BoE-approved": {
-    coe: {
+    CoE: {
       label: "Lock", // Final approval step: Lock the paper
       update: (paper) => ({ status: "Locked", is_locked: true }),
       confirm: (paper) =>

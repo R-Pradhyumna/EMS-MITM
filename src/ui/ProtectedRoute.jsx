@@ -1,10 +1,10 @@
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
 import Spinner from "./Spinner";
 
 import { useUser } from "../features/authentication/useUser";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useRole } from "../features/authentication/useRole";
 
 const FullPage = styled.div`
   height: 100vh;
@@ -14,20 +14,34 @@ const FullPage = styled.div`
   justify-content: center;
 `;
 
-function ProtectedRoute({ children }) {
+function ProtectedRoute({ allowedRoles, children }) {
   const navigate = useNavigate();
-  //1. Load authenticated user
   const { user, isLoading, isAuthenticated } = useUser();
+  const { role } = useRole();
 
-  // 2. If there is no authenticated user, redirect to /login
-  useEffect(
-    function () {
-      if (!isAuthenticated && !isLoading) navigate("/login");
-    },
-    [isAuthenticated, isLoading, navigate]
-  );
+  // Redirect to /login if not authenticated
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      navigate("/login", { replace: true });
+    }
+  }, [isAuthenticated, isLoading, navigate]);
 
-  // 3. While loading, show spinner
+  // RBAC redirect if wrong role
+  useEffect(() => {
+    if (
+      allowedRoles &&
+      isAuthenticated &&
+      !isLoading &&
+      (!role ||
+        typeof role !== "string" ||
+        !allowedRoles.map((r) => r.toLowerCase()).includes(role.toLowerCase()))
+    ) {
+      if (typeof role === "string") {
+        navigate(`/${role.toLowerCase()}`, { replace: true });
+      }
+    }
+  }, [allowedRoles, user, isAuthenticated, isLoading, navigate]);
+
   if (isLoading)
     return (
       <FullPage>
@@ -35,8 +49,20 @@ function ProtectedRoute({ children }) {
       </FullPage>
     );
 
-  //   4. If there is a user, render the app
-  if (isAuthenticated) return children;
+  // Block render until authenticated & authorized
+  if (!isAuthenticated) return null;
+
+  if (
+    allowedRoles &&
+    (!role ||
+      typeof role !== "string" ||
+      !allowedRoles.map((r) => r.toLowerCase()).includes(role.toLowerCase()))
+  ) {
+    // not authorized for this portal
+    return <FullPage>Not authorized</FullPage>;
+  }
+
+  return children;
 }
 
 export default ProtectedRoute;
