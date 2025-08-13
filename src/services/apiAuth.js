@@ -99,7 +99,7 @@ export async function updateCurrentUser({ password, fullName }) {
 }
 
 // Fetch role for the currently authenticated user
-export async function fetchUserRole() {
+export async function fetchUserData() {
   const {
     data: { user },
     error: sessionError,
@@ -109,11 +109,16 @@ export async function fetchUserRole() {
 
   const { data, error } = await supabase
     .from("users")
-    .select("role")
+    .select("employee_id,username,role,department_name")
     .eq("auth_user_id", user.id)
     .single();
 
   if (error || !data) throw new Error("User role not found in database!");
 
-  return data.role;
+  return {
+    employee_id: data.employee_id,
+    username: data.username,
+    department_name: data.department_name,
+    role: data.role,
+  };
 }

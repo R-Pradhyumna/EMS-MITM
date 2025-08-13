@@ -11,6 +11,7 @@ import ButtonText from "../../ui/ButtonText";
 import { useMoveBack } from "../../hooks/useMoveBack";
 import { useCPaper } from "./useCPaper";
 import Spinner from "./../../ui/Spinner";
+import Empty from "./../../ui/Empty";
 
 const HeadingGroup = styled.div`
   display: flex;
@@ -65,7 +66,7 @@ function PaperDetail() {
   if (isLoading) return <Spinner />;
 
   // If for some reason there is no paper (shouldn't normally happen), show fallback
-  if (!paper) return <div>No paper data</div>;
+  if (!paper) return <Empty resourceName="paper" />;
 
   // Pull out status and ID for local reference/actions
   const { status, id: paperId } = paper;

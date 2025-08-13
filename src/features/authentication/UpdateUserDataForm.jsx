@@ -1,57 +1,87 @@
-import { useState } from "react";
-
 import Button from "../../ui/Button";
 import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
 
-import { useUser } from "./useUser";
+import { useState } from "react";
+import { useUserData } from "./useUserData";
 import { useUpdateUser } from "./useUpdateUser";
+import { useUser } from "./useUser";
 
 function UpdateUserDataForm() {
-  // We don't need the loading state, and can immediately use the user data, because we know that it has already been loaded at this point
   const {
-    user: {
-      email,
-      user_metadata: { fullName: currentFullName },
-    },
+    user: { email },
   } = useUser();
-
+  const { employee_id, username, department_name, role } = useUserData();
   const { updateUser, isUpdating } = useUpdateUser();
 
-  const [fullName, setFullName] = useState(currentFullName);
+  console.log(username, employee_id, department_name);
+
+  // Controlled state for all editable fields
+  const [name, setName] = useState(username || "");
+  const [empId, setEmpId] = useState(employee_id || "");
+  const [deptName, setDeptName] = useState(department_name || "");
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!fullName) return;
+    if (!name.trim() || !empId.trim() || !deptName.trim()) return;
     updateUser(
-      { fullName },
+      { fullName: name, employee_id: empId, department_name: deptName },
       {
         onSuccess: () => {
-          e.target.reset();
+          setName(fullName || "");
+          setEmpId(employee_id || "");
+          setDeptName(department_name || "");
         },
       }
     );
   }
 
   function handleCancel() {
-    setFullName(currentFullName);
+    // Reset fields to current DB/user values
+    setName(username || "");
+    setEmpId(employee_id || "");
+    setDeptName(department_name || "");
   }
 
   return (
     <Form onSubmit={handleSubmit}>
       <FormRow label="Email address">
-        <Input value={email} disabled />
+        <Input value={email || ""} disabled />
       </FormRow>
 
       <FormRow label="Full name">
         <Input
           type="text"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
           id="fullName"
+          value={name}
           disabled={isUpdating}
+          onChange={(e) => setName(e.target.value)}
         />
+      </FormRow>
+
+      <FormRow label="Employee ID">
+        <Input
+          type="text"
+          id="employee_id"
+          value={empId}
+          disabled={isUpdating}
+          onChange={(e) => setEmpId(e.target.value)}
+        />
+      </FormRow>
+
+      <FormRow label="Department Name">
+        <Input
+          type="text"
+          id="department_name"
+          value={deptName}
+          disabled={isUpdating}
+          onChange={(e) => setDeptName(e.target.value)}
+        />
+      </FormRow>
+
+      <FormRow label="Role">
+        <Input value={role || ""} disabled />
       </FormRow>
 
       <FormRow>

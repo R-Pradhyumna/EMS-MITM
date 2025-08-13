@@ -8,7 +8,7 @@ import {
 } from "react-icons/hi2";
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
-import { useRole } from "../features/authentication/useRole";
+import { useUserData } from "../features/authentication/useUserData";
 
 const NavList = styled.ul`
   display: flex;
@@ -90,11 +90,7 @@ const navLinksConfig = [
 ];
 
 function MainNav() {
-  const { role, isLoading } = useRole();
-
-  useEffect(() => {
-    console.log("MainNav loaded: role =", role, "isLoading =", isLoading);
-  }, [role, isLoading]);
+  const { role, isLoading } = useUserData();
 
   let activeLinks;
 

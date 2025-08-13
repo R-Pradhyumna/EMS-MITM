@@ -23,7 +23,7 @@ export function useEditPaper() {
   const { mutate: editPaper, isLoading: isEditing } = useMutation({
     // mutationFn: takes a destructured object { newPaperData, id }
     // Calls your API utility to handle the edit (with the specific paper ID)
-    mutationFn: ({ newPaperData, id }) => createEditPapers(newPaperData, id),
+    mutationFn: ({ newPaper, id }) => createEditPapers(newPaper, id),
 
     // On successful edit:
     onSuccess: () => {

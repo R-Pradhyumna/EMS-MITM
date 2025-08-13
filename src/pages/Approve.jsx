@@ -2,10 +2,10 @@ import { useCPaper } from "./../features/coe/useCPaper";
 import { useBPaper } from "./../features/boe/useBPaper";
 import ApprovePaper from "../features/paperActivities/ApprovePaper";
 import Spinner from "../ui/Spinner";
-import { useRole } from "../features/authentication/useRole";
+import { useUserData } from "../features/authentication/useUserData";
 
 function Approve() {
-  const { role, isLoading } = useRole();
+  const { role, isLoading } = useUserData();
 
   if (isLoading) return <Spinner />;
 
