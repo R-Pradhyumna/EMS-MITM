@@ -2,6 +2,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { getPapers } from "../../services/apiBoE";
 import { useSearchParams } from "react-router-dom";
 import { PAGE_SIZE } from "../../utils/constants";
+import { useUserData } from "./../authentication/useUserData";
 
 /**
  * useBPapers
@@ -19,7 +20,7 @@ import { PAGE_SIZE } from "../../utils/constants";
 export function useBPapers() {
   const queryClient = useQueryClient();
   const [searchParams] = useSearchParams();
-
+  const { department_name } = useUserData();
   // --- 1. Filters ---
   // Get filter/search params from the URL
   const academicYear = searchParams.get("academic_year");
@@ -45,7 +46,8 @@ export function useBPapers() {
     error,
   } = useQuery({
     queryKey: ["exam_papers", filters, subjectCode, page], // Unique per filter & page
-    queryFn: () => getPapers({ filters, search: subjectCode, page }), // API call
+    queryFn: () =>
+      getPapers({ filters, search: subjectCode, page, department_name }), // API call
   });
 
   // --- 4. Prefetching ---

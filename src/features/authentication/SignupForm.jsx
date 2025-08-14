@@ -1,10 +1,25 @@
 import { useForm } from "react-hook-form";
+import styled from "styled-components";
 
 import Button from "../../ui/Button";
 import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
 import { useSignup } from "./useSignup";
+
+const StyledSelect = styled.select`
+  font-size: 1.4rem;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid
+    ${(props) =>
+      props.type === "white"
+        ? "var(--color-grey-100)"
+        : "var(--color-grey-300)"};
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-grey-0);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+`;
 
 // Email regex: /\S+@\S+\.\S+/
 
@@ -58,7 +73,7 @@ function SignupForm() {
       </FormRow>
 
       <FormRow label="Role" error={errors?.role?.message}>
-        <select
+        <StyledSelect
           id="role"
           {...register("role", { required: "Please select a role" })}
         >
@@ -67,7 +82,7 @@ function SignupForm() {
           <option value="CoE">Controller of Examination</option>
           <option value="BoE">Board of Examiner</option>
           <option value="Principal">Principal</option>
-        </select>
+        </StyledSelect>
       </FormRow>
 
       <FormRow label="Email address" error={errors?.email?.message}>

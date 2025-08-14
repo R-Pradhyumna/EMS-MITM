@@ -7,12 +7,14 @@ import FormRow from "./../../ui/FormRow";
 
 import { useCreatePaper } from "./useCreatePaper";
 import { useEditPaper } from "./useEditPaper";
+import { useUserData } from "../authentication/useUserData";
 
 // Form for adding or editing a single paper (question and scheme files, plus metadata)
 function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
   // Hooks for creating and editing paper entities (from custom mutation hooks)
   const { isCreating, createPaper } = useCreatePaper();
   const { isEditing, editPaper } = useEditPaper();
+  const { employee_id } = useUserData();
   // Track working state: disables form when a request is in progress
   const isWorking = isCreating || isEditing;
 
@@ -32,29 +34,31 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
   // Main submit handler: called with validated form data by react-hook-form
 
   function onSubmit(data) {
-    // For file inputs: array of File, or empty array if not present
     const qpFileArray =
       data.qp_file && data.qp_file.length > 0 ? data.qp_file : [];
     const schemeFileArray =
       data.scheme_file && data.scheme_file.length > 0 ? data.scheme_file : [];
 
-    const payload = {
+    const basePayload = {
       subject_code: data.subject_code,
       subject_name: data.subject_name,
       semester: data.semester,
       academic_year: Number(data.academic_year),
       department_name: data.department_name,
-      qp_file: qpFileArray, // <-- ALWAYS array
-      scheme_file: schemeFileArray, // <-- ALWAYS array
-      // Provide previous file URLs/types as well (for preservation)
-      qp_file_url: paperToEdit.qp_file_url,
-      scheme_file_url: paperToEdit.scheme_file_url,
-      qp_file_type: paperToEdit.qp_file_type,
-      scheme_file_type: paperToEdit.scheme_file_type,
+      qp_file: qpFileArray,
+      scheme_file: schemeFileArray,
+      uploaded_by: employee_id, // <-- Always include this!
     };
 
-    // For edit:
+    // For edit, preserve previous file URLs/types
     if (isEditSession) {
+      const payload = {
+        ...basePayload,
+        qp_file_url: paperToEdit.qp_file_url,
+        scheme_file_url: paperToEdit.scheme_file_url,
+        qp_file_type: paperToEdit.qp_file_type,
+        scheme_file_type: paperToEdit.scheme_file_type,
+      };
       editPaper(
         { newPaper: payload, id: editId },
         {
@@ -65,54 +69,53 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         }
       );
     } else {
-      // For create:
-      createPaper(
-        { ...data },
-        {
-          onSuccess: () => {
-            reset();
-            onCloseModal?.();
-          },
-        }
-      );
+      // For create: always include uploaded_by!
+      createPaper(basePayload, {
+        onSuccess: () => {
+          reset();
+          onCloseModal?.();
+        },
+      });
     }
   }
 
   // function onSubmit(data) {
-  //   // For file inputs, React Hook Form returns an array of File objects
-  //   const qpFile = data.qp_file[0];
-  //   const schemeFile = data.scheme_file[0];
+  //   // For file inputs: array of File, or empty array if not present
+  //   const qpFileArray =
+  //     data.qp_file && data.qp_file.length > 0 ? data.qp_file : [];
+  //   const schemeFileArray =
+  //     data.scheme_file && data.scheme_file.length > 0 ? data.scheme_file : [];
 
-  //   // Prepare the DB payload (for edit)
   //   const payload = {
   //     subject_code: data.subject_code,
   //     subject_name: data.subject_name,
   //     semester: data.semester,
   //     academic_year: Number(data.academic_year),
   //     department_name: data.department_name,
-  //     qp_file: qpFile,
-  //     scheme_file: schemeFile,
+  //     qp_file: qpFileArray, // <-- ALWAYS array
+  //     scheme_file: schemeFileArray, // <-- ALWAYS array
+  //     qp_file_url: paperToEdit.qp_file_url,
+  //     scheme_file_url: paperToEdit.scheme_file_url,
+  //     qp_file_type: paperToEdit.qp_file_type,
+  //     scheme_file_type: paperToEdit.scheme_file_type,
+  //     uploaded_by: employee_id,
   //   };
 
-  //   // If in edit mode, call editPaper with payload and the edit ID
+  //   // For edit:
   //   if (isEditSession) {
   //     editPaper(
-  //       { newPaperdata: payload, id: editId },
+  //       { newPaper: payload, id: editId },
   //       {
   //         onSuccess: () => {
-  //           reset(); // Resets form in the UI
-  //           onCloseModal?.(); // Closes dialog/modal if supplied
+  //           reset();
+  //           onCloseModal?.();
   //         },
   //       }
   //     );
-  //     // Else, create a new paper
   //   } else {
+  //     // For create:
   //     createPaper(
-  //       {
-  //         ...data, // Includes all fields being tracked by react-hook-form (may include IDs if present)
-  //         qp_file_url: data.qp_file[0], // Passes the raw File for upload
-  //         scheme_file_url: data.scheme_file[0], // Passes the raw File
-  //       },
+  //       { ...data },
   //       {
   //         onSuccess: () => {
   //           reset();
@@ -200,24 +203,18 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
       </FormRow>
 
       {/* QP File upload: required, .doc/.docx */}
-      {/* <FormRow label="QP File (.doc/.docx)" error={errors?.qp_file?.message}>
+      <FormRow label="QP File (.doc/.docx)" error={errors?.qp_file?.message}>
         <FileInput
           id="qp_file"
           accept=".doc,.docx"
           {...register("qp_file", {
-            required: "This field is required!",
+            required: !isEditSession ? "This field is required!" : false, // required only when adding!
           })}
         />
-      </FormRow> */}
-      <FileInput
-        id="qp_file"
-        accept=".doc,.docx"
-        {...register("qp_file", {
-          required: !isEditSession ? "This field is required!" : false, // required only when adding!
-        })}
-      />
+      </FormRow>
+
       {/* Scheme File upload: required, .doc/.docx */}
-      {/* <FormRow
+      <FormRow
         label="Schema File (.doc/.docx)"
         error={errors?.scheme_file?.message}
       >
@@ -225,17 +222,10 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           id="scheme_file"
           accept=".doc,.docx"
           {...register("scheme_file", {
-            required: "This field is required!",
+            required: !isEditSession ? "This field is required!" : false, // required only when adding!
           })}
         />
-      </FormRow> */}
-      <FileInput
-        id="scheme_file"
-        accept=".doc,.docx"
-        {...register("scheme_file", {
-          required: !isEditSession ? "This field is required!" : false, // required only when adding!
-        })}
-      />
+      </FormRow>
 
       {/* Form action buttons row (reset/cancel and submit) */}
       <FormRow>
@@ -247,6 +237,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         >
           Cancel
         </Button>
+
         {/* Main submit button (disabled while in progress) */}
         <Button disabled={isWorking}>
           {isEditSession ? "Edit paper" : "Add Paper"}

@@ -8,10 +8,16 @@ import { PAGE_SIZE } from "../utils/constants";
  *   - Searching by exact subject_code
  *   - Pagination
  */
-export async function getPapers({ filters = [], search = "", page }) {
+export async function getPapers({
+  filters = [],
+  search = "",
+  page,
+  department_name,
+}) {
   let query = supabase
     .from("exam_papers")
     .select("*", { count: "exact" }) // all fields, and total count for pagination
+    .eq("department_name", department_name)
     .order("created_at", { ascending: false }); // newest papers first
 
   // Filter out all papers with status === "Submitted"
