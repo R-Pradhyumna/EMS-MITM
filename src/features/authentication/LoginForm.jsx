@@ -1,4 +1,5 @@
 import { useState } from "react";
+import styled from "styled-components";
 
 import Button from "../../ui/Button";
 import Form from "../../ui/Form";
@@ -7,6 +8,16 @@ import Input from "../../ui/Input";
 import SpinnerMini from "./../../ui/SpinnerMini";
 
 import { useLogin } from "./useLogin";
+
+const SignUpLink = styled.a`
+  color: var(--color-brand-700);
+  text-decoration: underline;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--color-brand-500);
+  }
+`;
 
 function LoginForm() {
   const [email, setEmail] = useState("jojo@example.com");
@@ -55,6 +66,11 @@ function LoginForm() {
         <Button size="large" disabled={isLoading}>
           {!isLoading ? "Log in" : <SpinnerMini />}
         </Button>
+      </FormRowVertical>
+      <FormRowVertical>
+        <p style={{ textAlign: "center" }}>
+          Don't have an account? <SignUpLink href="/signup">Sign up</SignUpLink>
+        </p>
       </FormRowVertical>
     </Form>
   );

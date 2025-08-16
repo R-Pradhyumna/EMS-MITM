@@ -6,9 +6,10 @@ import Form from "../../ui/Form";
 import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
 import { useSignup } from "./useSignup";
+import { useUserData } from "./useUserData";
 
 const StyledSelect = styled.select`
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   padding: 0.8rem 1.2rem;
   border: 1px solid
     ${(props) =>
@@ -27,7 +28,7 @@ function SignupForm() {
   const { signup, isLoading } = useSignup();
   const { register, formState, getValues, handleSubmit, reset } = useForm();
   const { errors } = formState;
-
+  const { role } = useUserData();
   function onSubmit({
     fullName,
     email,
@@ -72,18 +73,19 @@ function SignupForm() {
         />
       </FormRow>
 
-      <FormRow label="Role" error={errors?.role?.message}>
-        <StyledSelect
-          id="role"
-          {...register("role", { required: "Please select a role" })}
-        >
-          <option value="">-- Select role --</option>
-          <option value="faculty">Faculty</option>
-          <option value="CoE">Controller of Examination</option>
-          <option value="BoE">Board of Examiner</option>
-          <option value="Principal">Principal</option>
-        </StyledSelect>
-      </FormRow>
+      {role === "CoE" && (
+        <FormRow label="Role" error={errors?.role?.message}>
+          <StyledSelect
+            id="role"
+            {...register("role", { required: "Please select a role" })}
+          >
+            <option value="">Select role</option>
+            <option value="CoE">Controller of Examination</option>
+            <option value="BoE">Board of Examiner</option>
+            <option value="Principal">Principal</option>
+          </StyledSelect>
+        </FormRow>
+      )}
 
       <FormRow label="Email address" error={errors?.email?.message}>
         <Input

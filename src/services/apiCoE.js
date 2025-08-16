@@ -92,3 +92,25 @@ export async function approvePaper(id, obj) {
 
   return data;
 }
+
+export async function getDepartments() {
+  const { data, error } = await supabase.from("departments").select("*");
+
+  if (error) {
+    throw new Error("Departments could not be loaded!");
+  }
+
+  return data;
+}
+
+export async function getAcademicYear() {
+  const { data, error } = await supabase
+    .from("exam_papers")
+    .select("academic_year");
+
+  if (error) {
+    throw new Error("Academic Year could not be loaded!");
+  }
+
+  return data;
+}

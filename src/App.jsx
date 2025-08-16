@@ -1,25 +1,28 @@
+import { lazy, Suspense } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { Toaster } from "react-hot-toast";
 
-import GlobalStyles from "./styles/GlobalStyles";
-import HomePage from "./pages/HomePage";
-import Faculty from "./pages/Faculty";
-import CoE from "./pages/CoE";
-import BoE from "./pages/BoE";
-import Principal from "./pages/Principal";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Users from "./pages/Users";
-import PageNotFound from "./pages/PageNotFound";
-import AppLayout from "./ui/AppLayout";
-import Paper from "./pages/Paper";
-import Approve from "./pages/Approve";
-import Dashboard from "./pages/Dashboard";
-import ProtectedRoute from "./ui/ProtectedRoute";
-import Account from "./pages/Account";
+const GlobalStyles = lazy(() => import("./styles/GlobalStyles"));
+const ProtectedRoute = lazy(() => import("./ui/ProtectedRoute"));
+const AppLayout = lazy(() => import("./ui/AppLayout"));
+const HomePage = lazy(() => import("./pages/HomePage"));
+const Faculty = lazy(() => import("./pages/Faculty"));
+const CoE = lazy(() => import("./pages/CoE"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const BoE = lazy(() => import("./pages/BoE"));
+const Principal = lazy(() => import("./pages/Principal"));
+const Paper = lazy(() => import("./pages/Paper"));
+const Approve = lazy(() => import("./pages/Approve"));
+const Users = lazy(() => import("./pages/Users"));
+const Account = lazy(() => import("./pages/Account"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const PageNotFound = lazy(() => import("./pages/PageNotFound"));
+
 import { DarkModeProvider } from "./context/DarkModeContext";
+import Spinner from "./ui/Spinner";
 
 const queryClient = new QueryClient();
 
@@ -30,84 +33,86 @@ function App() {
         <ReactQueryDevtools initialIsOpen={false} />
         <GlobalStyles />
         <BrowserRouter>
-          <Routes>
-            <Route
-              element={
-                <ProtectedRoute>
-                  <AppLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Navigate replace to="homepage" />} />
-
-              <Route path="homepage" element={<HomePage />} />
-
+          <Suspense fallback={<Spinner />}>
+            <Routes>
               <Route
-                path="faculty"
                 element={
-                  <ProtectedRoute allowedRoles={["faculty"]}>
-                    <Faculty />
+                  <ProtectedRoute>
+                    <AppLayout />
                   </ProtectedRoute>
                 }
-              />
+              >
+                <Route index element={<Navigate replace to="homepage" />} />
 
-              <Route
-                path="coe"
-                element={
-                  <ProtectedRoute allowedRoles={["CoE"]}>
-                    <CoE />
-                  </ProtectedRoute>
-                }
-              />
+                <Route path="homepage" element={<HomePage />} />
 
-              <Route
-                path="dashboard"
-                element={
-                  <ProtectedRoute allowedRoles={["CoE"]}>
-                    <Dashboard />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="faculty"
+                  element={
+                    <ProtectedRoute allowedRoles={["faculty"]}>
+                      <Faculty />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="boe"
-                element={
-                  <ProtectedRoute allowedRoles={["BoE"]}>
-                    <BoE />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="coe"
+                  element={
+                    <ProtectedRoute allowedRoles={["CoE"]}>
+                      <CoE />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="papers/:id" element={<Paper />} />
+                <Route
+                  path="dashboard"
+                  element={
+                    <ProtectedRoute allowedRoles={["CoE"]}>
+                      <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="approve/:id"
-                allowedRoles={["CoE", "BoE"]}
-                element={
-                  <ProtectedRoute allowedRoles={["CoE", "BoE"]}>
-                    <Approve />
-                  </ProtectedRoute>
-                }
-              />
+                <Route
+                  path="boe"
+                  element={
+                    <ProtectedRoute allowedRoles={["BoE"]}>
+                      <BoE />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route
-                path="principal"
-                element={
-                  <ProtectedRoute allowedRoles={["Principal"]}>
-                    <Principal />
-                  </ProtectedRoute>
-                }
-              />
+                <Route path="papers/:id" element={<Paper />} />
 
-              <Route path="users" element={<Users />} />
+                <Route
+                  path="approve/:id"
+                  allowedRoles={["CoE", "BoE"]}
+                  element={
+                    <ProtectedRoute allowedRoles={["CoE", "BoE"]}>
+                      <Approve />
+                    </ProtectedRoute>
+                  }
+                />
 
-              <Route path="account" element={<Account />} />
-            </Route>
+                <Route
+                  path="principal"
+                  element={
+                    <ProtectedRoute allowedRoles={["Principal"]}>
+                      <Principal />
+                    </ProtectedRoute>
+                  }
+                />
 
-            <Route path="login" element={<Login />} />
-            <Route path="signup" element={<Signup />} />
-            <Route path="*" element={<PageNotFound />} />
-          </Routes>
+                <Route path="users" element={<Users />} />
+
+                <Route path="account" element={<Account />} />
+              </Route>
+
+              <Route path="login" element={<Login />} />
+              <Route path="signup" element={<Signup />} />
+              <Route path="*" element={<PageNotFound />} />
+            </Routes>
+          </Suspense>
         </BrowserRouter>
 
         <Toaster

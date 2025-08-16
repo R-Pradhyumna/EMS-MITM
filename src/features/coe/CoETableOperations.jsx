@@ -1,8 +1,8 @@
+import { useDepartments } from "../../hooks/useDepartments";
+import { useAcademicYear } from "../../hooks/useAcademicYear";
 import Filter from "../../ui/Filter";
-import TableOperations from "../../ui/TableOperations";
 import SearchBar from "../../ui/Searchbar";
-import Button from "../../ui/Button";
-import { useNavigate } from "react-router-dom";
+import TableOperations from "../../ui/TableOperations";
 
 /**
  * CoETableOperations
@@ -17,34 +17,40 @@ import { useNavigate } from "react-router-dom";
  * context or parent handlers to wire up filter/search state to data fetching.
  */
 function CoETableOperations() {
-  const navigate = useNavigate();
+  const { data = [] } = useDepartments();
+  const { ay = [] } = useAcademicYear();
+
+  const departments = [
+    { value: "", label: "Departments" },
+    ...data.map((dep) => ({
+      value: dep.name,
+      label: dep.name,
+    })),
+  ];
+
+  const uniqueYears = Array.from(new Set(ay.map((ay) => ay.academic_year)));
+  const academic_years = [
+    { value: "", label: "Academic Year" },
+    ...uniqueYears.map((year) => ({
+      value: year,
+      label: year,
+    })),
+  ];
+
   return (
     // Container for all table-level operations and controls
     <TableOperations>
       {/* Department Name filter: lets user filter by ISE, CSE, or show All */}
-      <Filter
-        filterField="department_name"
-        options={[
-          { value: "all", label: "All" },
-          { value: "ISE", label: "Information Science" },
-          { value: "CSE", label: "Computer Science" },
-        ]}
-      />
+      <Filter filterField="department_name" options={departments} />
 
       {/* Academic Year filter: select 2023 or show All years */}
-      <Filter
-        filterField="academic_year"
-        options={[
-          { value: "all", label: "All" },
-          { value: "2023", label: "2023" },
-        ]}
-      />
+      <Filter filterField="academic_year" options={academic_years} />
 
       {/* Status filter: filter by submission/approval/download status */}
       <Filter
         filterField="status"
         options={[
-          { value: "all", label: "All" },
+          { value: "all", label: "Status" },
           { value: "Submitted", label: "Submitted" },
           { value: "CoE-approved", label: "CoE-approved" },
           { value: "BoE-approved", label: "BoE-approved" },
@@ -55,8 +61,6 @@ function CoETableOperations() {
 
       {/* Search Bar: for searching papers by code, name, etc */}
       <SearchBar />
-      {/* Button to navigate to CoE dashboard */}
-      <Button onClick={() => navigate(`/dashboard`)}>Visit Dashboard</Button>
     </TableOperations>
   );
 }

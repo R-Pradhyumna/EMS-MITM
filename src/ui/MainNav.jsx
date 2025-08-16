@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import {
   HiAcademicCap,
+  HiCog6Tooth,
   HiGlobeAlt,
   HiOutlineHome,
   HiOutlineUserGroup,
@@ -73,6 +74,12 @@ const navLinksConfig = [
     path: "/coe",
     label: "CoE",
     icon: <HiAcademicCap />,
+    allowedRoles: ["CoE"],
+  },
+  {
+    path: "/dashboard",
+    label: "Dashboard",
+    icon: <HiCog6Tooth />,
     allowedRoles: ["CoE"],
   },
   {

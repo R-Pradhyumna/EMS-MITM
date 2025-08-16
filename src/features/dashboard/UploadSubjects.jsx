@@ -26,7 +26,7 @@ export function UploadSubjects() {
 
   return (
     <>
-      <Button size="medium" variation="primary" onClick={handleClick}>
+      <Button size="small" variation="primary" onClick={handleClick}>
         Upload subjects
       </Button>
       <input

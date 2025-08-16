@@ -1,3 +1,4 @@
+import styled from "styled-components";
 import { useForm } from "react-hook-form";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
@@ -8,6 +9,21 @@ import FormRow from "./../../ui/FormRow";
 import { useCreatePaper } from "./useCreatePaper";
 import { useEditPaper } from "./useEditPaper";
 import { useUserData } from "../authentication/useUserData";
+import { useDepartments } from "../../hooks/useDepartments";
+
+const StyledSelect = styled.select`
+  font-size: 1.2rem;
+  padding: 0.8rem 1.2rem;
+  border: 1px solid
+    ${(props) =>
+      props.type === "white"
+        ? "var(--color-grey-100)"
+        : "var(--color-grey-300)"};
+  border-radius: var(--border-radius-sm);
+  background-color: var(--color-grey-0);
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+`;
 
 // Form for adding or editing a single paper (question and scheme files, plus metadata)
 function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
@@ -15,6 +31,11 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
   const { isCreating, createPaper } = useCreatePaper();
   const { isEditing, editPaper } = useEditPaper();
   const { employee_id } = useUserData();
+  const { data = [] } = useDepartments();
+  const options = data.map((dep) => ({
+    value: dep.id,
+    label: dep.name,
+  }));
   // Track working state: disables form when a request is in progress
   const isWorking = isCreating || isEditing;
 
@@ -191,15 +212,21 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
 
       {/* Department name: string, max length 4 */}
       <FormRow label="Department Name" error={errors?.department_name?.message}>
-        <Input
-          type="text"
+        <StyledSelect
           id="department_name"
           disabled={isWorking}
           {...register("department_name", {
             required: "This field is required!",
             maxLength: { value: 4, message: "Max 4 characters" },
           })}
-        />
+        >
+          <option value="">Select Department</option>
+          {options.map((option) => (
+            <option key={option.value} value={option.value}>
+              {option.label}
+            </option>
+          ))}
+        </StyledSelect>
       </FormRow>
 
       {/* QP File upload: required, .doc/.docx */}
@@ -231,7 +258,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
       <FormRow>
         {/* Cancel/close button (resets and/or closes modal) */}
         <Button
-          variation="secondary"
+          variation="danger"
           type="reset"
           onClick={() => onCloseModal?.()}
         >

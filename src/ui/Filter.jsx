@@ -31,9 +31,8 @@ function Filter({ filterField, options }) {
   function handleChange(e) {
     const value = e.target.value;
     const params = new URLSearchParams(searchParams);
-    const oldValue = searchParams.get(filterField) || options.at(0).value;
+    const oldValue = searchParams.get(filterField) || options.at(0).value || "";
     params.set(filterField, value);
-    console.log(params);
     if (value !== oldValue) params.set("page", 1);
     setSearchParams(params);
   }

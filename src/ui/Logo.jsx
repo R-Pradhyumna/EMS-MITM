@@ -1,7 +1,7 @@
 import styled from "styled-components";
 import { useDarkMode } from "../context/DarkModeContext";
-import logoDark from "../assets/MIT-logo-dark.png";
-import logoLight from "../assets/MIT-logo-light.png";
+import logoDark from "../assets/MIT-logo-dark.webp";
+import logoLight from "../assets/MIT-logo-light.webp";
 
 const StyledLogo = styled.div`
   text-align: center;

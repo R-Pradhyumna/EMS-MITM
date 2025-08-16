@@ -26,7 +26,7 @@ export function UploadExams() {
 
   return (
     <>
-      <Button size="medium" variation="primary" onClick={handleClick}>
+      <Button size="small" variation="primary" onClick={handleClick}>
         Upload exam schedule
       </Button>
       <input
