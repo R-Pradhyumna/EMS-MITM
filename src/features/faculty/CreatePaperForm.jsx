@@ -33,7 +33,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
   const { employee_id } = useUserData();
   const { data = [] } = useDepartments();
   const options = data.map((dep) => ({
-    value: dep.id,
+    value: dep.name,
     label: dep.name,
   }));
   // Track working state: disables form when a request is in progress
