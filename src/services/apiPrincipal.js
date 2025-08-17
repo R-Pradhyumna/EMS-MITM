@@ -25,7 +25,9 @@ export async function getPapers({ filters = [], search = "", page, date }) {
   //    - status IN ('Locked', 'Downloaded') so UI can show both available and already-touched slots
   let query = supabase
     .from("exam_papers")
-    .select("*")
+    .select(
+      "id,subject_code,subject_id,academic_year,department_name,is_downloaded,qp_file_url,exam_datetime,status"
+    )
     .in("status", ["Locked", "Downloaded"])
     .gte("exam_datetime", start)
     .lte("exam_datetime", end);

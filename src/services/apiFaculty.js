@@ -12,7 +12,9 @@ export async function getPapers({ page, employee_id }) {
   // Start building the query: select all columns, return total count, order by newest first
   let query = supabase
     .from("exam_papers")
-    .select("*", { count: "exact" })
+    .select("id, subject_code,academic_year,subject_name,semester,status", {
+      count: "exact",
+    })
     .eq("uploaded_by", employee_id)
     .order("created_at", { ascending: false });
 

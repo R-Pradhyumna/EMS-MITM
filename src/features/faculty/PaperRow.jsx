@@ -109,13 +109,18 @@ function PaperRow({ paper }) {
         <Modal>
           <Menus.Menu>
             {/* The three-dot toggle for row actions */}
-            <Menus.Toggle id={paperId} />
+            <Menus.Toggle
+              id={paperId}
+              aria-label="Show actions for this paper"
+            />
             {/* Only enable edit if paper is still "Submitted" (i.e., not locked/approved) */}
             {status === "Submitted" && (
               <Menus.List id={paperId}>
                 {/* Modal.Open links the menu action to opening the modal */}
                 <Modal.Open opens="edit">
-                  <Menus.Button icon={<HiPencil />}>Edit</Menus.Button>
+                  <Menus.Button icon={<HiPencil />} aria-label="Edit paper">
+                    Edit
+                  </Menus.Button>
                 </Modal.Open>
               </Menus.List>
             )}

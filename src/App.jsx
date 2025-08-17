@@ -24,7 +24,15 @@ const PageNotFound = lazy(() => import("./pages/PageNotFound"));
 import { DarkModeProvider } from "./context/DarkModeContext";
 import Spinner from "./ui/Spinner";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: true,
+      refetchInterval: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 function App() {
   return (
