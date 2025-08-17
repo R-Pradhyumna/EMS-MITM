@@ -1,6 +1,6 @@
 import styled, { keyframes } from "styled-components";
 import Heading from "../ui/Heading";
-import EMSLogo from "../assets/Main-Logo.webp";
+import EMSLogo from "../assets/Main-logo.webp";
 
 const fadeInUp = keyframes`
   from {
