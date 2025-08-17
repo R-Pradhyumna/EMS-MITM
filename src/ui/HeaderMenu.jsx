@@ -26,19 +26,21 @@ function HeaderMenu() {
 
   return (
     <StyledHeaderMenu>
-      <StyledUserAvatar>
-        <span>Welcome back, {username}</span>
-      </StyledUserAvatar>
       <li>
-        <ButtonIcon onClick={() => navigate("/account")}>
+        <StyledUserAvatar>
+          <span>Welcome back, {username}</span>
+        </StyledUserAvatar>
+      </li>
+      <li>
+        <ButtonIcon onClick={() => navigate("/account")} aria-label="Account">
           <HiOutlineUser />
         </ButtonIcon>
       </li>
       <li>
-        <DarkModeToggle />
+        <DarkModeToggle aria-label="Toggle Dark Mode" />
       </li>
       <li>
-        <Logout />
+        <Logout aria-label="Logout" />
       </li>
     </StyledHeaderMenu>
   );

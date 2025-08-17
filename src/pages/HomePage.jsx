@@ -64,13 +64,6 @@ const WelcomeCard = styled.div`
   /* 2. Animate the card container */
   opacity: 0; /* Start hidden */
   animation: ${fadeInUp} 0.6s 0.3s ease-out forwards; /* Delay start by 0.3s */
-
-  @media (max-width: 900px) {
-    grid-template-columns: 1fr;
-    text-align: center;
-    gap: 3rem;
-    padding: 3.2rem;
-  }
 `;
 
 const LogoContainer = styled.div`
