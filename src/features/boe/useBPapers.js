@@ -59,14 +59,16 @@ export function useBPapers() {
     queryClient.prefetchQuery({
       // prefetch key must match main query
       queryKey: ["exam_papers", filters, subjectCode, page + 1],
-      queryFn: () => getPapers({ filters, subjectCode, page: page + 1 }),
+      queryFn: () =>
+        getPapers({ filters, subjectCode, page: page + 1, department_name }),
     });
 
   // Prefetch previous page if not already on page 1
   if (page > 1)
     queryClient.prefetchQuery({
       queryKey: ["exam_papers", filters, subjectCode, page - 1],
-      queryFn: () => getPapers({ filters, subjectCode, page: page - 1 }),
+      queryFn: () =>
+        getPapers({ filters, subjectCode, page: page - 1, department_name }),
     });
 
   // --- 5. Return standardized result

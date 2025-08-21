@@ -169,18 +169,18 @@ body::after {
 }
 
 /* ::before is the OUTGOING theme layer (a snapshot of the old theme) */
-html.dark-mode::before {
+body.theme-changing-to-dark::before {
   background-color: #f4f2ed; /* Hardcoded light theme background */
   animation: fade-out 0.6s ease-in-out forwards;
 }
-html.light-mode::before {
+body.theme-changing-to-light::before {
   background-color: #111827; /* Hardcoded dark theme background */
   animation: fade-out 0.6s ease-in-out forwards;
 }
 
 /* ::after is the INCOMING theme layer */
-html.dark-mode::after,
-html.light-mode::after {
+body.theme-changing-to-dark::after,
+body.theme-changing-to-light::after {
   /* This uses the NEW theme's variable because the class on <html> has already switched */
   background-color: var(--color-grey-50);
   animation: fade-in 0.6s ease-in-out forwards;

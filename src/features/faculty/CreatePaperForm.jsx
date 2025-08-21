@@ -161,7 +161,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           disabled={isWorking}
           {...register("subject_code", {
             required: "This field is required!",
-            maxLength: { value: 8, message: "Max 8 characters" }, // correct for strings
+            maxLength: { value: 10, message: "Max 10 characters" }, // correct for strings
           })}
         />
       </FormRow>
@@ -217,7 +217,6 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           disabled={isWorking}
           {...register("department_name", {
             required: "This field is required!",
-            maxLength: { value: 4, message: "Max 4 characters" },
           })}
         >
           <option value="">Select Department</option>

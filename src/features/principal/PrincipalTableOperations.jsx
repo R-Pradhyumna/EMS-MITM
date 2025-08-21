@@ -1,7 +1,8 @@
 import Filter from "../../ui/Filter";
 import TableOperations from "../../ui/TableOperations";
 import SearchBar from "../../ui/Searchbar";
-
+import { useDepartments } from "../../hooks/useDepartments";
+import { useAcademicYear } from "../../hooks/useAcademicYear";
 /**
  * PrincipalTableOperations
  * -------------------------
@@ -13,26 +14,33 @@ import SearchBar from "../../ui/Searchbar";
  * Parent/component context should connect filter/search state to data queries.
  */
 function PrincipalTableOperations() {
+  const { data = [] } = useDepartments();
+  const { ay = [] } = useAcademicYear();
+
+  const departments = [
+    { value: "", label: "Departments" },
+    ...data.map((dep) => ({
+      value: dep.name,
+      label: dep.name,
+    })),
+  ];
+
+  const uniqueYears = Array.from(new Set(ay.map((ay) => ay.academic_year)));
+  const academic_years = [
+    { value: "", label: "Academic Year" },
+    ...uniqueYears.map((year) => ({
+      value: year,
+      label: year,
+    })),
+  ];
+
   return (
     <TableOperations>
       {/* Filter by department_name (dropdown) */}
-      <Filter
-        filterField="department_name"
-        options={[
-          { value: "all", label: "All" },
-          { value: "ISE", label: "Information Science" },
-          { value: "CSE", label: "Computer Science" },
-        ]}
-      />
+      <Filter filterField="department_name" options={departments} />
 
       {/* Filter by academic_year (dropdown) */}
-      <Filter
-        filterField="academic_year"
-        options={[
-          { value: "all", label: "All" },
-          { value: "2023", label: "2023" },
-        ]}
-      />
+      <Filter filterField="academic_year" options={academic_years} />
 
       {/* Freeform search - typically by subject code/name */}
       <SearchBar />

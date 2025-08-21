@@ -26,11 +26,9 @@ function HeaderMenu() {
 
   return (
     <StyledHeaderMenu>
-      <li>
-        <StyledUserAvatar>
-          <span>Welcome back, {username}</span>
-        </StyledUserAvatar>
-      </li>
+      <StyledUserAvatar>
+        <span>Welcome back, {username}</span>
+      </StyledUserAvatar>
       <li>
         <ButtonIcon onClick={() => navigate("/account")} aria-label="Account">
           <HiOutlineUser />

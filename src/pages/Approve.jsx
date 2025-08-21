@@ -6,7 +6,7 @@ import { useUserData } from "../features/authentication/useUserData";
 
 function Approve() {
   const { role, isLoading } = useUserData();
-
+  console.log(role);
   if (isLoading) return <Spinner />;
 
   if (role !== "CoE" && role !== "BoE") {

@@ -119,7 +119,7 @@ function HomePage() {
             document handling for administrators and staff. The system supports
             multi-department coordination, advanced search and filtering, and
             maintains comprehensive records to simplify examination management
-            and enhance institutional reliability
+            and enhance institutional reliability.
           </p>
         </AboutSection>
       </WelcomeCard>
