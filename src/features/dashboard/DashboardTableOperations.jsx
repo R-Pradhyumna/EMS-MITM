@@ -3,6 +3,7 @@ import Button from "../../ui/Button";
 import TableOperations from "../../ui/TableOperations";
 import { UploadExams } from "./UploadExams";
 import { UploadSubjects } from "./UploadSubjects";
+import UploadUsers from "./UploadUsers";
 
 function DashboardTableOperations() {
   const navigate = useNavigate();
@@ -10,9 +11,7 @@ function DashboardTableOperations() {
     <TableOperations>
       <UploadSubjects />
       <UploadExams />
-      <Button onClick={() => navigate("/signup")} size="small">
-        Create a new user
-      </Button>
+      <UploadUsers />
     </TableOperations>
   );
 }

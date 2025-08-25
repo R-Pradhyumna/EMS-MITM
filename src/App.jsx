@@ -1,8 +1,8 @@
-import { lazy, Suspense } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 
 const GlobalStyles = lazy(() => import("./styles/GlobalStyles"));
 const ProtectedRoute = lazy(() => import("./ui/ProtectedRoute"));
@@ -18,7 +18,6 @@ const Approve = lazy(() => import("./pages/Approve"));
 const Users = lazy(() => import("./pages/Users"));
 const Account = lazy(() => import("./pages/Account"));
 const Login = lazy(() => import("./pages/Login"));
-const Signup = lazy(() => import("./pages/Signup"));
 const PageNotFound = lazy(() => import("./pages/PageNotFound"));
 
 import { DarkModeProvider } from "./context/DarkModeContext";
@@ -117,7 +116,6 @@ function App() {
               </Route>
 
               <Route path="login" element={<Login />} />
-              <Route path="signup" element={<Signup />} />
               <Route path="*" element={<PageNotFound />} />
             </Routes>
           </Suspense>

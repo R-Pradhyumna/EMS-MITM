@@ -1,10 +1,11 @@
-import { useRef } from "react";
-import Button from "../../ui/Button"; // Use your actual Button import
-import { uploadSubjectsFile } from "../../services/apiDashboard"; // See previous solution
+import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import Button from "../../ui/Button";
+import { uploadSubjectsFile } from "../../services/apiDashboard";
 
 export function UploadSubjects() {
   const fileInputRef = useRef();
+  const [isUploading, setIsUploading] = useState(false);
 
   const handleClick = () => {
     fileInputRef.current.click();
@@ -12,22 +13,47 @@ export function UploadSubjects() {
 
   const handleFileChange = async (event) => {
     const file = event.target.files[0];
+    event.target.value = ""; // Reset early to allow re-upload
+
     if (!file) return;
 
-    try {
-      await uploadSubjectsFile(file); // parses and uploads subjects
-      toast.success("Subjects uploaded successfully!");
-      // Optionally refresh subjects table here
-    } catch (err) {
-      toast.error(err.message || "Upload failed.");
+    // Validate file type
+    const validTypes = [".csv", ".xlsx"];
+    if (!validTypes.some((ext) => file.name.toLowerCase().endsWith(ext))) {
+      toast.error("Please upload a CSV or Excel (.xlsx) file.");
+      return;
     }
-    event.target.value = ""; // reset file input
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File too large. Max 5MB.");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      await uploadSubjectsFile(file);
+      toast.success("Subjects uploaded successfully!");
+    } catch (err) {
+      toast.error(
+        err.message || "Upload failed. Please check the file and try again."
+      );
+      console.error(err);
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
     <>
-      <Button size="small" variation="primary" onClick={handleClick}>
-        Upload subjects
+      <Button
+        size="small"
+        variation="primary"
+        onClick={handleClick}
+        disabled={isUploading}
+      >
+        {isUploading ? "Uploading..." : "Upload subjects"}
       </Button>
       <input
         type="file"
@@ -35,6 +61,7 @@ export function UploadSubjects() {
         ref={fileInputRef}
         style={{ display: "none" }}
         onChange={handleFileChange}
+        disabled={isUploading}
       />
     </>
   );
