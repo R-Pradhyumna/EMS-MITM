@@ -1,13 +1,6 @@
 import supabase from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
 
-/**
- * Fetch paginated, filtered, non-Submitted exam papers.
- * Supports:
- *   - Filtering (array of {field, value})
- *   - Searching by exact subject_code
- *   - Pagination
- */
 export async function getPapers({
   filters = [],
   search = "",
@@ -55,11 +48,6 @@ export async function getPapers({
   return { data, count };
 }
 
-/**
- * Fetch details for a single exam paper by ID.
- * @param {number|string} id - Unique paper ID
- * @returns {Promise<Object>}
- */
 export async function getPaper(id) {
   const { data, error } = await supabase
     .from("exam_papers")
@@ -74,12 +62,6 @@ export async function getPaper(id) {
   return data;
 }
 
-/**
- * Approve/lock/update a paper's fields.
- * @param {number|string} id - Paper's DB ID
- * @param {Object} obj - Fields to be updated (e.g. {status: "Locked"})
- * @returns {Promise<Object>} - Updated paper row
- */
 export async function approvePaper(id, obj) {
   const { data, error } = await supabase
     .from("exam_papers")
@@ -95,14 +77,6 @@ export async function approvePaper(id, obj) {
   return data;
 }
 
-/**
- * Uploads corrected (scrutinized) QP and Scheme files for a paper.
- * - Replaces existing files in storage and returns new public URLs.
- * @param {Object} paper - The paper object (must have storage_folder_path)
- * @param {File} qpFile - QP file to upload (File/Blob)
- * @param {File} schemaFile - Scheme file to upload (File/Blob)
- * @returns {Promise<{qp_file_url: string, scheme_file_url: string}>}
- */
 export async function uploadScrutinizedFiles(paper, qpFile, schemaFile) {
   // Quick validation
   if (!qpFile || !schemaFile)
@@ -134,4 +108,30 @@ export async function uploadScrutinizedFiles(paper, qpFile, schemaFile) {
     qp_file_url: `${supabaseUrl}/storage/v1/object/public/papers/${qpFilename}`,
     scheme_file_url: `${supabaseUrl}/storage/v1/object/public/papers/${schemaFilename}`,
   };
+}
+
+export async function getFaculties({ department_name, page }) {
+  let query = supabase
+    .from("users")
+    .select("employee_id, username, department_name, role", { count: "exact" })
+    .eq("department_name", department_name)
+    .eq("role", "faculty")
+    .is("deleted_at", null);
+
+  if (page) {
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    query = query.range(from, to);
+  }
+
+  // Execute the built query
+  const { data, error, count } = await query;
+
+  // Throw user-friendly error on any failure
+  if (error) {
+    throw new Error("Faculties could not be loaded!");
+  }
+
+  // Return paginated data and the total matching count
+  return { data, count };
 }

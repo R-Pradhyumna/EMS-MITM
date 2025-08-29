@@ -14,7 +14,12 @@ export function useLogin() {
       navigate("/homepage", { replace: true });
     },
     onError: (err) => {
-      toast.error("Provided email or password is incorrect");
+      // Only show "email/password incorrect" if error is from Supabase Auth.
+      if (err.message === "Invalid login credentials") {
+        toast.error("Provided email or password is incorrect");
+      } else {
+        toast.error(err.message);
+      }
     },
   });
 

@@ -1,13 +1,17 @@
-import Heading from "./../ui/Heading";
-import SignupForm from "../features/authentication/SignupForm";
+import Row from "../ui/Row";
+import Heading from "../ui/Heading";
+import UserTable from "../features/authentication/UserTable";
 
-function NewUsers() {
+function Users() {
   return (
     <>
-      <Heading as="h1">Create a new user</Heading>;
-      <SignupForm />
+      <Row type="horizontal">
+        <Heading as="h1">Users Portal</Heading>
+      </Row>
+
+      <UserTable />
     </>
   );
 }
 
-export default NewUsers;
+export default Users;

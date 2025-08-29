@@ -6,7 +6,7 @@ import MITLogo from "../assets/MIT-logo-light.webp";
 const StyledFooter = styled.footer`
   background-color: var(--color-grey-0);
   border-top: 1px solid var(--color-grey-100);
-  padding: 3.2rem 4.8rem;
+  padding: 2rem 4.8rem;
   grid-column: 2 / -1;
   display: flex;
   justify-content: space-between;
@@ -75,7 +75,7 @@ function Footer() {
       </Logos>
 
       <Credits>
-        {/* <p>
+        <p>
           Developed by{" "}
           <PortfolioLink
             href="https://r-pradhyumna.github.io/My-portfolio/"
@@ -83,7 +83,7 @@ function Footer() {
           >
             R Pradhyumna | IS&E
           </PortfolioLink>
-        </p> */}
+        </p>
         <p>Copyright &copy; 2025 MITM. All rights reserved.</p>
       </Credits>
 

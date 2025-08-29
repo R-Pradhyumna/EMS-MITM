@@ -29,6 +29,10 @@ const GlobalStyles = createGlobalStyle`
     --color-indigo-100: #e0e7ff;
     --color-indigo-700: #4338ca;
 
+    --color-red-100: #fee2e2;
+    --color-red-700: #b91c1c;
+    --color-red-800: #991b1b;
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
     --shadow-md: 0px 0.6rem 2.4rem rgba(0, 0, 0, 0.05);
     --shadow-lg: 0 2.4rem 3.2rem rgba(0, 0, 0, 0.09);
@@ -50,6 +54,10 @@ const GlobalStyles = createGlobalStyle`
     --color-grey-700: #e5e7eb;
     --color-grey-800: #f3f4f6;
     --color-grey-900: #f9fafb;
+
+    --color-red-100: #fee2e2;
+    --color-red-700: #b91c1c;
+    --color-red-800: #991b1b;
 
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --shadow-md: 0px 0.6rem 2.4rem rgba(0, 0, 0, 0.25);

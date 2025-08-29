@@ -94,3 +94,28 @@ export async function downloadPaper(downloaded_paper_id) {
 
   return data; // Paper object with updated status/flags
 }
+
+export async function getCoE({ page }) {
+  let query = supabase
+    .from("users")
+    .select("employee_id, username, department_name, role", { count: "exact" })
+    .eq("role", "CoE")
+    .is("deleted_at", null);
+
+  if (page) {
+    const from = (page - 1) * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+    query = query.range(from, to);
+  }
+
+  // Execute the built query
+  const { data, error, count } = await query;
+
+  // Throw user-friendly error on any failure
+  if (error) {
+    throw new Error("Users could not be loaded!");
+  }
+
+  // Return paginated data and the total matching count
+  return { data, count };
+}

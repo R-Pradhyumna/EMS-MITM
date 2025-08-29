@@ -31,7 +31,7 @@ function BoETable() {
       <Table columns="1.4fr 1.8fr 2.2fr 1fr 1fr 1fr">
         <Table.Header>
           <div>Subject Code</div>
-          <div>Scheme/Academic Year</div>
+          <div>Academic Year</div>
           <div>Subject Name</div>
           <div>Semester</div>
           <div>Status</div>

@@ -42,9 +42,7 @@ function UploadUsers() {
       // Success feedback
       toast.success(
         data?.created
-          ? `Users created: ${data.created}. ${
-              data.errors?.length || 0
-            } rows had errors.`
+          ? `Users created: ${data.created}.`
           : "No users were created."
       );
 

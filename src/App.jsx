@@ -110,7 +110,14 @@ function App() {
                   }
                 />
 
-                <Route path="users" element={<Users />} />
+                <Route
+                  path="users"
+                  element={
+                    <ProtectedRoute allowedRoles={["CoE", "BoE", "Principal"]}>
+                      <Users />
+                    </ProtectedRoute>
+                  }
+                />
 
                 <Route path="account" element={<Account />} />
               </Route>

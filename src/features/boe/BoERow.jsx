@@ -32,9 +32,9 @@ const Semester = styled.div`
 const Status = styled.div`
   font-family: "Sono";
   font-weight: 500;
-  padding: 0.4rem 1.2rem;
+  padding: 0.2rem 1rem;
   border-radius: var(--border-radius-sm);
-  text-align: center;
+  text-align: left;
   width: fit-content;
   white-space: nowrap;
 

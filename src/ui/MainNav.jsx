@@ -6,6 +6,7 @@ import {
   HiOutlineHome,
   HiOutlineUserGroup,
   HiOutlineUsers,
+  HiUserGroup,
 } from "react-icons/hi2";
 import { NavLink } from "react-router-dom";
 import styled from "styled-components";
@@ -93,6 +94,12 @@ const navLinksConfig = [
     label: "Principal",
     icon: <HiGlobeAlt />,
     allowedRoles: ["Principal"],
+  },
+  {
+    path: "/users",
+    label: "Users",
+    icon: <HiUserGroup />,
+    allowedRoles: ["CoE", "BoE", "Principal"],
   },
 ];
 
