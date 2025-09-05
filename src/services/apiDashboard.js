@@ -5,7 +5,12 @@ import Papa from "papaparse";
 export async function getSchema({ page }) {
   let query = supabase
     .from("exam_papers")
-    .select("*", { count: "exact" })
+    .select(
+      "subject_code, academic_year,subject_name,semester,uploaded_by,scheme_file_url",
+      {
+        count: "exact",
+      }
+    )
     .eq("is_downloaded", true);
 
   // Pagination: apply a range based on page number and PAGE_SIZE
@@ -36,33 +41,65 @@ export async function uploadSubjectsFile(file) {
       complete: async function (results) {
         const subjects = results.data;
 
-        // Validate: All fields must be present and non-null/non-empty
+        // Updated validation to include all 6 document URLs
+        const requiredFields = [
+          "subject_code",
+          "subject_name",
+          "subject_type",
+          "department_id",
+          "instructions_url",
+          "syllabus_url",
+          "model_paper_url",
+          "declaration_url",
+          "see_template_url",
+          "scheme_template_url",
+        ];
+
+        // Enhanced validation for all required fields including URLs
         const validRows = subjects
-          .filter(
-            (row) =>
-              row.subject_code && // must exist and not be empty
-              row.subject_name && // must exist and not be empty
-              row.subject_type && // must exist and not be empty
-              row.department_id && // must exist and not be empty/string
-              !isNaN(Number(row.department_id)) // must be a valid department ID (number)
-          )
+          .filter((row) => {
+            return (
+              requiredFields.every((field) => {
+                return (
+                  row[field] &&
+                  typeof row[field] === "string" &&
+                  row[field].trim() !== ""
+                );
+              }) && !isNaN(Number(row.department_id))
+            );
+          })
           .map((row) => ({
             subject_code: row.subject_code,
             subject_name: row.subject_name,
             subject_type: row.subject_type,
             department_id: Number(row.department_id),
+            // Add the 6 document URLs
+            instructions_url: row.instructions_url,
+            syllabus_url: row.syllabus_url,
+            model_paper_url: row.model_paper_url,
+            declaration_url: row.declaration_url,
+            see_template_url: row.see_template_url,
+            scheme_template_url: row.scheme_template_url,
           }));
 
         if (validRows.length === 0) {
           reject(
             new Error(
-              "No valid rows found. All fields must be present for every subject!"
+              "No valid rows found. All fields including document URLs must be present for every subject!"
             )
           );
           return;
         }
 
-        // Upsert using subject_code to avoid duplicates, but only with valid complete rows
+        // Report skipped rows for debugging
+        const skippedCount = subjects.length - validRows.length;
+        if (skippedCount > 0) {
+          console.warn(
+            `Skipped ${skippedCount} invalid rows out of ${subjects.length} total rows`
+          );
+        }
+
+        // Upsert using subject_code to avoid duplicates
         const { data, error } = await supabase
           .from("subjects")
           .upsert(validRows, { onConflict: ["subject_code"] });
@@ -70,7 +107,12 @@ export async function uploadSubjectsFile(file) {
         if (error) {
           reject(error);
         } else {
-          resolve(data);
+          resolve({
+            data,
+            processed: validRows.length,
+            skipped: skippedCount,
+            total: subjects.length,
+          });
         }
       },
       error: (err) => reject(err),

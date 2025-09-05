@@ -38,7 +38,11 @@ function DarkModeToggle() {
   }
 
   return (
-    <ButtonIcon onClick={handleToggle} disabled={isTransitioning}>
+    <ButtonIcon
+      onClick={handleToggle}
+      disabled={isTransitioning}
+      title="Toggle Theme"
+    >
       {isDarkMode ? <HiOutlineSun /> : <HiOutlineMoon />}
     </ButtonIcon>
   );

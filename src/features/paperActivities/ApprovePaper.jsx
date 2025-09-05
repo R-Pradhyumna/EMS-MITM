@@ -72,7 +72,7 @@ function ApprovePaper({ role, usePaperHook }) {
       <PaperDataBox paper={paper} role={role} />
 
       {/* --- Action/Confirmation Section: Only if transition is valid for current status/role --- */}
-      {transition && (
+      {transition && transition.confirm && (
         <Box>
           <Checkbox
             checked={confirmed}
@@ -86,7 +86,13 @@ function ApprovePaper({ role, usePaperHook }) {
       {/* --- Action Buttons --- */}
       <ButtonGroup>
         {transition && (
-          <Button onClick={handleAction} disabled={!confirmed || isApproving}>
+          <Button
+            onClick={handleAction}
+            variation="danger"
+            disabled={
+              isApproving || (transition.confirm && !confirmed) // Only require confirmation if confirm exists
+            }
+          >
             {isApproving
               ? `${transition.label}ing...`
               : `${transition.label} paper ${id}`}

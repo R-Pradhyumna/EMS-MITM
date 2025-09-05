@@ -36,9 +36,19 @@ export function UploadSubjects() {
       await uploadSubjectsFile(file);
       toast.success("Subjects uploaded successfully!");
     } catch (err) {
-      toast.error(
-        err.message || "Upload failed. Please check the file and try again."
-      );
+      // More specific error handling
+      if (err.message.includes("duplicate key")) {
+        toast.error("Some subjects already exist and were updated.");
+      } else if (err.message.includes("No valid rows")) {
+        toast.error(
+          "Invalid CSV format. Please check that all required fields (including document URLs) are present."
+        );
+      } else {
+        toast.error(
+          err.message ||
+            "Upload failed. Please check the file format and try again."
+        );
+      }
       console.error(err);
     } finally {
       setIsUploading(false);

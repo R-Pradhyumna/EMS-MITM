@@ -8,7 +8,7 @@ import { useLogout } from "./useLogout";
 function Logout() {
   const { logout, isLoading } = useLogout();
   return (
-    <ButtonIcon disabled={isLoading} onClick={logout}>
+    <ButtonIcon disabled={isLoading} onClick={logout} title="Sign Out">
       {!isLoading ? <HiOutlineLogout /> : <SpinnerMini />}
     </ButtonIcon>
   );

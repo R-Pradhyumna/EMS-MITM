@@ -1,11 +1,13 @@
 import styled from "styled-components";
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import {
   HiOutlineDocumentText,
-  HiOutlineAcademicCap,
+  HiOutlineBookOpen,
   HiOutlineUser,
   HiOutlineCheckCircle,
+  HiOutlineBuildingOffice,
+  HiOutlineCalendar,
 } from "react-icons/hi2";
 import DataItem from "../../ui/DataItem";
 import Button from "../../ui/Button";
@@ -49,18 +51,26 @@ const Header = styled.header`
   }
 `;
 
+// NEW: Grid layout for two columns
+const GridSection = styled.section`
+  padding: 3.2rem 4rem 1.2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: stretch;
+`;
+
+// NEW: Column containers
+const Column = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+`;
+
 const Section = styled.section`
   padding: 3.2rem 4rem 1.2rem;
 `;
 
-const Footer = styled.footer`
-  padding: 1.6rem 4rem;
-  font-size: 1.2rem;
-  color: var(--color-grey-500);
-  text-align: right;
-`;
-
-// Status badge
 const Status = styled.span`
   font-family: "Sono";
   font-weight: 500;
@@ -97,15 +107,9 @@ const Status = styled.span`
       : "var(--color-grey-700)"};
 `;
 
-/**
- * Main component to show a detailed data/card view for a paper.
- * Handles display for all major fields, statuses, and (for "boe" role) scrutinized file upload workflow.
- */
 function PaperDataBox({ paper, role }) {
-  // If no paper is provided, render nothing
   if (!paper) return null;
 
-  // Destructure all paper fields for easy access
   const {
     status,
     subject_name,
@@ -117,33 +121,28 @@ function PaperDataBox({ paper, role }) {
     created_at,
     updated_at,
     approved_by,
+    downloaded_at,
     qp_file_url,
     scheme_file_url,
   } = paper;
 
-  // State for toggling "edit mode" (for BoE upload UI)
   const [isEditing, setIsEditing] = useState(false);
-  // State for holding selected scrutinized QP/schema files during BoE workflow
   const [scrutinizedQP, setScrutinizedQP] = useState(null);
   const [scrutinizedSchema, setScrutinizedSchema] = useState(null);
 
-  // Mutation for uploading corrected (scrutinized) files, with processing state
   const { mutate: uploadFiles, isLoading } = useUploadScrutinizedFiles({
     onSuccess: () => {
-      // Reset edit mode and file selections after successful upload
       setIsEditing(false);
       setScrutinizedQP(null);
       setScrutinizedSchema(null);
     },
   });
 
-  // Handler to start BoE upload mutation, with validation
   function handleUpload() {
     if (!scrutinizedQP || !scrutinizedSchema) {
       toast.error("Please select both QP and Schema files.");
       return;
     }
-    // Calls the file upload mutation with selected files and current paper info
     uploadFiles({
       paper,
       qpFile: scrutinizedQP,
@@ -151,7 +150,6 @@ function PaperDataBox({ paper, role }) {
     });
   }
 
-  // Toggles edit mode, and clears selected files when leaving edit mode
   function toggleEdit() {
     setIsEditing((prev) => {
       if (prev) {
@@ -162,7 +160,6 @@ function PaperDataBox({ paper, role }) {
     });
   }
 
-  // === Main Data Box Layout ===
   return (
     <StyledPaperDataBox>
       {/* Header: subject code + status badge */}
@@ -177,30 +174,67 @@ function PaperDataBox({ paper, role }) {
           {status?.replace("-", " ") ?? "Unknown"}
         </Status>
       </Header>
-
-      {/* Section: summary of data fields */}
-      <Section>
-        <DataItem icon={<HiOutlineAcademicCap />} label="Subject - ">
-          {subject_name} {subject_code && <>({subject_code})</>}
-        </DataItem>
-        <DataItem icon={<HiOutlineUser />} label="Uploaded by - ">
-          {uploaded_by}
-        </DataItem>
-        <DataItem icon={<HiOutlineDocumentText />} label="Department - ">
-          {department_name}
-        </DataItem>
-        <DataItem icon={<HiOutlineDocumentText />} label="Semester, Year - ">
-          {semester}, {academic_year}
-        </DataItem>
-        {/* Show who approved, if available */}
-        {approved_by && (
-          <DataItem icon={<HiOutlineCheckCircle />} label="Approved by - ">
-            {approved_by}
+      {/* NEW: Two-column grid layout */}
+      <GridSection>
+        {/* Column 1: Subject, Uploaded by, Department */}
+        <Column>
+          <DataItem icon={<HiOutlineBookOpen />} label="Subject - ">
+            {subject_name} {subject_code && <>({subject_code})</>}
           </DataItem>
-        )}
-      </Section>
 
-      {/* --- BoE (scrutinizer) workflow: download and upload sections --- */}
+          <DataItem icon={<HiOutlineUser />} label="Uploaded by - ">
+            {uploaded_by}
+          </DataItem>
+
+          <DataItem icon={<HiOutlineBuildingOffice />} label="Department - ">
+            {department_name}
+          </DataItem>
+
+          {approved_by && (
+            <DataItem icon={<HiOutlineCheckCircle />} label="Approved by - ">
+              {approved_by}
+            </DataItem>
+          )}
+        </Column>
+
+        {/* Column 2: Semester/Year, Created at, Updated at */}
+        <Column>
+          <DataItem icon={<HiOutlineCalendar />} label="Semester, Year - ">
+            {semester}, {academic_year}
+          </DataItem>
+
+          {created_at && (
+            <DataItem icon={<HiOutlineCalendar />} label="Created -">
+              {formatInTimeZone(
+                new Date(created_at),
+                "Asia/Kolkata",
+                "EEE, MMM dd yyyy, p"
+              )}
+            </DataItem>
+          )}
+
+          {updated_at && created_at !== updated_at && (
+            <DataItem icon={<HiOutlineCalendar />} label="Approved -">
+              {formatInTimeZone(
+                new Date(updated_at),
+                "Asia/Kolkata",
+                "EEE, MMM dd yyyy, p"
+              )}
+            </DataItem>
+          )}
+
+          {downloaded_at && created_at !== updated_at && (
+            <DataItem icon={<HiOutlineCalendar />} label="Downloaded -">
+              {formatInTimeZone(
+                new Date(downloaded_at),
+                "Asia/Kolkata",
+                "EEE, MMM dd yyyy, p"
+              )}
+            </DataItem>
+          )}
+        </Column>
+      </GridSection>
+      {/* BoE workflow sections remain the same */}
       {role === "BoE" && (
         <Section
           style={{
@@ -211,7 +245,6 @@ function PaperDataBox({ paper, role }) {
             width: "100%",
           }}
         >
-          {/* Download original QP file */}
           {qp_file_url && (
             <Button
               as="a"
@@ -223,22 +256,18 @@ function PaperDataBox({ paper, role }) {
               Download QP
             </Button>
           )}
-          {/* Download original scheme file */}
           {scheme_file_url && (
             <Button as="a" href={scheme_file_url} download target="_blank">
               Download Schema
             </Button>
           )}
-          {/* Spacer/flex-push */}
           <div style={{ flex: 1 }} />
-          {/* Toggle scrutinized file upload UI */}
           <Button variant="secondary" onClick={toggleEdit}>
             {isEditing ? "Cancel" : "Edit Paper"}
           </Button>
         </Section>
       )}
-
-      {/* --- BoE file upload area, shown only in edit mode --- */}
+      {/* BoE file upload sections remain the same */}
       {role === "BoE" && isEditing && (
         <>
           <Section>
@@ -275,21 +304,6 @@ function PaperDataBox({ paper, role }) {
           </Section>
         </>
       )}
-
-      {/* --- Footer: timestamps for create/update --- */}
-      <Footer>
-        {created_at && (
-          <span>
-            Created {format(new Date(created_at), "EEE, MMM dd yyyy, p")}
-          </span>
-        )}
-        {updated_at && created_at !== updated_at && (
-          <span>
-            {" "}
-            | Updated {format(new Date(updated_at), "EEE, MMM dd yyyy, p")}
-          </span>
-        )}
-      </Footer>
     </StyledPaperDataBox>
   );
 }

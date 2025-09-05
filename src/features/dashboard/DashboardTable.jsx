@@ -26,6 +26,7 @@ function DashboardTable() {
           <div>Academic Year</div>
           <div>Subject Name</div>
           <div>Semester</div>
+          <div>Uploaded By</div>
           <div>Schema File</div>
         </Table.Header>
 

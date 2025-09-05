@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import {
   HiAcademicCap,
   HiCog6Tooth,
@@ -15,7 +14,7 @@ import { useUserData } from "../features/authentication/useUserData";
 const NavList = styled.ul`
   display: flex;
   flex-direction: column;
-  gap: 0.8rem;
+  gap: 1rem;
 `;
 
 const StyledNavLink = styled(NavLink)`

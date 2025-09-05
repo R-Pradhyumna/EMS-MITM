@@ -6,13 +6,12 @@ import { useUserData } from "../features/authentication/useUserData";
 
 function Approve() {
   const { role, isLoading } = useUserData();
-  console.log(role);
   if (isLoading) return <Spinner />;
 
   if (role !== "CoE" && role !== "BoE") {
     return <FullPage>Not Authorized</FullPage>;
   }
-  console.log(role);
+
   const usePaperHook = role === "CoE" ? useCPaper : useBPaper;
 
   return <ApprovePaper role={role} usePaperHook={usePaperHook} />;

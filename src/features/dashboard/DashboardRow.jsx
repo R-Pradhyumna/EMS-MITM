@@ -31,17 +31,15 @@ function DashboardRow({
     academic_year,
     subject_name,
     semester,
+    uploaded_by,
     scheme_file_url, // <- Make sure this is present in your paper object
-    scheme_file_type, // optional, for icon or file type info
   },
 }) {
   const handleDownload = () => {
     // Download Scheme of Valuation file
     const link = document.createElement("a");
     link.href = scheme_file_url;
-    link.download = `${subject_code}_SchemeOfValuation.${
-      scheme_file_type || "docx"
-    }`;
+    link.download = `${subject_code}_SchemeOfValuation.`;
     link.click();
   };
 
@@ -51,7 +49,7 @@ function DashboardRow({
       <SubCode>{academic_year}</SubCode>
       <SubName>{subject_name}</SubName>
       <Semester>{semester}</Semester>
-
+      <SubName>{uploaded_by}</SubName>
       {/* Download SoV button */}
       <Button
         size="medium"
@@ -59,7 +57,7 @@ function DashboardRow({
         onClick={handleDownload}
         disabled={!scheme_file_url}
       >
-        {scheme_file_url ? "Download SoV" : "Not Available"}
+        {scheme_file_url ? "Download" : "Not Available"}
       </Button>
     </Table.Row>
   );

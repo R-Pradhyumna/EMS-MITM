@@ -30,7 +30,11 @@ function HeaderMenu() {
         <span>Welcome back, {username}</span>
       </StyledUserAvatar>
       <li>
-        <ButtonIcon onClick={() => navigate("/account")} aria-label="Account">
+        <ButtonIcon
+          onClick={() => navigate("/account")}
+          aria-label="Account"
+          title="Account Settings"
+        >
           <HiOutlineUser />
         </ButtonIcon>
       </li>

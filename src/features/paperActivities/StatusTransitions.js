@@ -23,10 +23,6 @@ const StatusTransitions = {
     BoE: {
       label: "Approve", // BoE now approves
       update: (paper) => ({ status: "BoE-approved" }), // Sets next status
-      confirm: (paper) =>
-        `I confirm that ${
-          paper.approved_by || paper.uploaded_by
-        } has approved paper #${paper.id}`,
     },
   },
   // When status is "BoE-approved"
@@ -35,7 +31,8 @@ const StatusTransitions = {
       label: "Lock", // Final approval step: Lock the paper
       update: (paper) => ({ status: "Locked", is_locked: true }),
       confirm: (paper) =>
-        `I confirm all approvals are complete for paper #${paper.id}. Locking now.`,
+        `I confirm that ${paper.approved_by || paper.uploaded_by} 
+           has approved paper #${paper.id}`,
     },
   },
 };

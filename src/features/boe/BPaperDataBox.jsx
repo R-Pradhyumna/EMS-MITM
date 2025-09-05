@@ -1,16 +1,14 @@
 import styled from "styled-components";
-import { format } from "date-fns";
+import { formatInTimeZone } from "date-fns-tz";
 import {
   HiOutlineDocumentText,
   HiOutlineAcademicCap,
   HiOutlineUser,
+  HiOutlineBuilding,
+  HiOutlineCalendar,
 } from "react-icons/hi2";
 import DataItem from "../../ui/DataItem";
 
-/**
- * The main container for the paper data card/box.
- * Gives border, rounded corners, and background color.
- */
 const StyledPaperDataBox = styled.section`
   background-color: var(--color-grey-0);
   border: 1px solid var(--color-grey-100);
@@ -18,9 +16,6 @@ const StyledPaperDataBox = styled.section`
   overflow: hidden;
 `;
 
-/**
- * Header area—colored bar at the top with subject code and status badge.
- */
 const Header = styled.header`
   background-color: var(--color-brand-500);
   padding: 2rem 4rem;
@@ -51,26 +46,22 @@ const Header = styled.header`
   }
 `;
 
-/**
- * Used for the main group of data items (subject, uploader, etc).
- */
-const Section = styled.section`
+// NEW: Grid layout for two columns
+const GridSection = styled.section`
   padding: 3.2rem 4rem 1.2rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: stretch;
 `;
 
-/**
- * Right-aligned footer, for create/update audit timestamps.
- */
-const Footer = styled.footer`
-  padding: 1.6rem 4rem;
-  font-size: 1.2rem;
-  color: var(--color-grey-500);
-  text-align: right;
+// NEW: Column containers
+const Column = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
 `;
 
-/**
- * Status badge; color and background are based on the paper status string.
- */
 const Status = styled.span`
   font-family: "Sono";
   font-weight: 500;
@@ -107,22 +98,9 @@ const Status = styled.span`
       : "var(--color-grey-700)"};
 `;
 
-// --- Main View Component ---
-
-/**
- * BPaperDataBox
- * ----------------
- * Displays a read-only "data card" for an exam paper
- * (for BoE/approval use case).
- * Shows main status, subject, uploader, department, semester/year, and timestamps.
- *
- * @param {Object}   paper - The paper object to display.
- */
 function BPaperDataBox({ paper }) {
-  // If no paper loaded yet, render nothing.
   if (!paper) return null;
 
-  // Destructure all relevant metadata and audit fields from the paper object.
   const {
     status,
     subject_name,
@@ -133,59 +111,74 @@ function BPaperDataBox({ paper }) {
     uploaded_by,
     created_at,
     updated_at,
-    approved_by, // (not displayed here, but available if needed)
+    downloaded_at,
   } = paper;
 
-  // Render the structured, styled paper info box.
   return (
     <StyledPaperDataBox>
       <Header>
-        {/* Icon and subject code on the left */}
         <div>
           <HiOutlineDocumentText />
           <span>{subject_code}</span>
         </div>
-        {/* Status badge (right side of header) */}
         <Status status={status}>
           {status?.replace("-", " ") ?? "Unknown"}
         </Status>
       </Header>
 
-      <Section>
-        {/* Subject and code/name */}
-        <DataItem icon={<HiOutlineAcademicCap />} label="Subject - ">
-          {subject_name} {subject_code && <>({subject_code})</>}
-        </DataItem>
+      <GridSection>
+        {/* Column 1: Subject, Uploaded By, Department */}
+        <Column>
+          <DataItem icon={<HiOutlineAcademicCap />} label="Subject - ">
+            {subject_name} {subject_code && <>({subject_code})</>}
+          </DataItem>
 
-        {/* Uploaded by */}
-        <DataItem icon={<HiOutlineUser />} label="Uploaded by - ">
-          {uploaded_by}
-        </DataItem>
+          <DataItem icon={<HiOutlineUser />} label="Uploaded by - ">
+            {uploaded_by}
+          </DataItem>
 
-        {/* Department */}
-        <DataItem icon={<HiOutlineDocumentText />} label="Department - ">
-          {department_name}
-        </DataItem>
+          <DataItem icon={<HiOutlineBuilding />} label="Department - ">
+            {department_name}
+          </DataItem>
+        </Column>
 
-        {/* Semester and academic year */}
-        <DataItem icon={<HiOutlineDocumentText />} label="Semester, Year - ">
-          {semester}, {academic_year}
-        </DataItem>
-      </Section>
+        {/* Column 2: Semester/Year, Created at, Updated at */}
+        <Column>
+          <DataItem icon={<HiOutlineCalendar />} label="Semester, Year - ">
+            {semester}, {academic_year}
+          </DataItem>
 
-      {/* Footer: creation and update timestamps, formatted for readability */}
-      <Footer>
-        {created_at && (
-          <span>
-            Created {format(new Date(created_at), "EEE, MMM dd yyyy, p")}
-          </span>
-        )}
-        {updated_at && created_at !== updated_at && (
-          <span>
-            | Updated {format(new Date(updated_at), "EEE, MMM dd yyyy, p")}
-          </span>
-        )}
-      </Footer>
+          {created_at && (
+            <DataItem icon={<HiOutlineCalendar />} label="Created -">
+              {formatInTimeZone(
+                new Date(created_at),
+                "Asia/Kolkata",
+                "EEE, MMM dd yyyy, p"
+              )}
+            </DataItem>
+          )}
+
+          {updated_at && created_at !== updated_at && (
+            <DataItem icon={<HiOutlineCalendar />} label="Updated -">
+              {formatInTimeZone(
+                new Date(updated_at),
+                "Asia/Kolkata",
+                "EEE, MMM dd yyyy, p"
+              )}
+
+              {downloaded_at && created_at !== updated_at && (
+                <DataItem icon={<HiOutlineCalendar />} label="Approved -">
+                  {formatInTimeZone(
+                    new Date(downloaded_at),
+                    "Asia/Kolkata",
+                    "EEE, MMM dd yyyy, p"
+                  )}
+                </DataItem>
+              )}
+            </DataItem>
+          )}
+        </Column>
+      </GridSection>
     </StyledPaperDataBox>
   );
 }
