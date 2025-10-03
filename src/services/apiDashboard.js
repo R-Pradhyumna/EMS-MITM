@@ -1,7 +1,38 @@
+/**
+ * Dashboard API Module
+ *
+ * Provides API functions for dashboard operations including:
+ * - Retrieving downloaded Scheme of Valuation (SoV) papers
+ * - Bulk uploading subjects data via CSV import
+ * - Bulk uploading exam schedules via CSV import
+ *
+ * Uses PapaParse for CSV parsing and validation before database operations.
+ *
+ * @module apiDashboard
+ */
+
 import supabase from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
 import Papa from "papaparse";
 
+/**
+ * Retrieves paginated list of Scheme of Valuation papers that have been downloaded.
+ *
+ * Fetches papers marked as downloaded (is_downloaded = true) with relevant metadata
+ * for dashboard display and tracking purposes.
+ *
+ * @async
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page] - Page number for pagination (1-based)
+ * @returns {Promise<Object>} Paginated SoV papers and total count
+ * @returns {Array<Object>} returns.data - Array of paper objects with subject_code, academic_year, subject_name, semester, uploaded_by, scheme_file_url
+ * @returns {number} returns.count - Total count of downloaded SoV papers
+ * @throws {Error} If SoV papers cannot be loaded from database
+ *
+ * @example
+ * const result = await getSchema({ page: 1 });
+ * console.log(`Found ${result.count} downloaded SoV papers`);
+ */
 export async function getSchema({ page }) {
   let query = supabase
     .from("exam_papers")
@@ -32,7 +63,39 @@ export async function getSchema({ page }) {
   return { data, count };
 }
 
-// file: CSV file object from user
+/**
+ * Uploads and imports subjects from a CSV file with comprehensive validation.
+ *
+ * Processes CSV file containing subject data including all required document URLs.
+ * Performs validation on all required fields and skips invalid rows while logging warnings.
+ * Uses upsert operation to avoid duplicates based on subject_code.
+ *
+ * Required CSV columns:
+ * - subject_code: Unique subject identifier
+ * - subject_name: Full name of the subject
+ * - subject_type: Type/category of subject
+ * - department_id: Numeric department identifier
+ * - instructions_url: URL to subject instructions document
+ * - syllabus_url: URL to syllabus document
+ * - model_paper_url: URL to model question paper
+ * - declaration_url: URL to declaration document
+ * - see_template_url: URL to SEE template
+ * - scheme_template_url: URL to scheme of valuation template
+ *
+ * @async
+ * @param {File} file - CSV file object from user file input
+ * @returns {Promise<Object>} Import results with statistics
+ * @returns {*} returns.data - Database response data
+ * @returns {number} returns.processed - Number of valid rows successfully imported
+ * @returns {number} returns.skipped - Number of invalid rows skipped
+ * @returns {number} returns.total - Total number of rows in CSV file
+ * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
+ *
+ * @example
+ * const fileInput = document.getElementById('subjectsFile');
+ * const result = await uploadSubjectsFile(fileInput.files[0]);
+ * console.log(`Imported ${result.processed} subjects, skipped ${result.skipped}`);
+ */
 export async function uploadSubjectsFile(file) {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {
@@ -120,7 +183,32 @@ export async function uploadSubjectsFile(file) {
   });
 }
 
-// file: CSV file selected by CoE user in file input
+/**
+ * Uploads and imports exam schedules from a CSV file with validation.
+ *
+ * Processes CSV file containing exam schedule data for bulk insertion.
+ * Validates all required fields and data types before database insertion.
+ * Invalid rows are filtered out and not imported.
+ *
+ * Required CSV columns:
+ * - exam_name: Name/title of the examination
+ * - department_id: Numeric department identifier
+ * - semester: Semester value (e.g., "5", "7")
+ * - scheme: Examination scheme identifier
+ * - exam_datetime: ISO format datetime (YYYY-MM-DDTHH:mm)
+ * - subject_id: Numeric subject identifier
+ * - academic_year: Numeric academic year (e.g., 2024)
+ *
+ * @async
+ * @param {File} file - CSV file object selected by CoE user in file input
+ * @returns {Promise<*>} Database response data from bulk insert operation
+ * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
+ *
+ * @example
+ * const fileInput = document.getElementById('scheduleFile');
+ * const result = await uploadExamScheduleFile(fileInput.files[0]);
+ * console.log('Exam schedule imported successfully');
+ */
 export async function uploadExamScheduleFile(file) {
   return new Promise((resolve, reject) => {
     Papa.parse(file, {

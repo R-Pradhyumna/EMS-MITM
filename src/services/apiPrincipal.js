@@ -1,17 +1,54 @@
+/**
+ * Principal API Module
+ *
+ * Provides API functions for Principal-specific operations including:
+ * - Retrieving and grouping examination papers by subject for daily downloads
+ * - Managing paper download tracking and status updates
+ * - Retrieving Controller of Examinations (CoE) user list
+ *
+ * Implements specialized date-based filtering and subject grouping for
+ * the Principal's daily paper download workflow.
+ *
+ * @module apiPrincipal
+ */
+
 import supabase from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
 import { formatISO, startOfDay, endOfDay } from "date-fns";
 import { groupPapersBySubject } from "./../features/principal/groupPapersBySubject";
 
 /**
- * getPapers
- * ---------
- * Fetches a paginated, grouped list of exam papers for the Principal.
- * - Supports dynamic filters (department, year, etc.), keyword search, and date-based selection.
- * - Always includes both "Locked" and "Downloaded" papers for that date,
- *   letting frontend show all download slots and disable downloaded ones.
- * - Groups papers so each row is a subject with its N slots (papers).
- * - Returns just the current page plus total count for pagination.
+ * Fetches a paginated, grouped list of exam papers for Principal download workflow.
+ *
+ * Implements specialized logic for Principal's daily paper download interface:
+ * - Filters papers by date range (defaults to current date)
+ * - Includes both "Locked" (available) and "Downloaded" (already taken) papers
+ * - Groups papers by subject_code to show all download slots per subject
+ * - Supports department/year filtering and subject code search
+ * - Returns paginated groups (each group = one subject with multiple paper slots)
+ *
+ * Frontend can use this to show all slots for a subject and disable downloaded ones
+ * while keeping them visible for tracking purposes.
+ *
+ * @async
+ * @param {Object} params - Query parameters
+ * @param {Array<Object>} [params.filters=[]] - Array of filter objects with field and value properties
+ * @param {string} [params.search=""] - Subject code search string (case-insensitive partial match)
+ * @param {number} params.page - Page number for pagination (1-based)
+ * @param {Date|string} [params.date] - Target date for paper retrieval (defaults to today)
+ * @returns {Promise<Object>} Paginated grouped papers and total count
+ * @returns {Array<Object>} returns.data - Array of grouped subject objects, each containing multiple paper slots
+ * @returns {number} returns.count - Total count of subject groups (not individual papers)
+ * @throws {Error} If papers cannot be loaded from database
+ *
+ * @example
+ * const result = await getPapers({
+ *   filters: [{ field: 'department_name', value: 'Computer Science' }],
+ *   search: 'CS5',
+ *   page: 1,
+ *   date: '2025-10-03'
+ * });
+ * console.log(`Found ${result.count} subjects with papers today`);
  */
 export async function getPapers({ filters = [], search = "", page, date }) {
   // 1. Prepare the date range for the query (defaults to today if not provided)
@@ -69,12 +106,24 @@ export async function getPapers({ filters = [], search = "", page, date }) {
 }
 
 /**
- * downloadPaper
- * -------------
- * Marks one paper as "Downloaded" in the database.
- * - Sets 'is_downloaded' and 'downloaded_at'.
- * - Changes status to 'Downloaded' (so future queries can show disabled slots, but not hide them).
- * - Returns raw updated paper data for frontend to refresh state.
+ * Marks a specific exam paper as downloaded by the Principal.
+ *
+ * Updates the paper's download status in the database:
+ * - Sets is_downloaded flag to true
+ * - Records download timestamp
+ * - Changes status to "Downloaded" to prevent duplicate downloads
+ *
+ * This enables tracking of which papers have been downloaded and allows
+ * the UI to disable already-downloaded slots while keeping them visible.
+ *
+ * @async
+ * @param {number} downloaded_paper_id - Unique identifier of the paper being downloaded
+ * @returns {Promise<Array<Object>>} Updated paper object(s) from database
+ * @throws {Error} If database update fails
+ *
+ * @example
+ * const updatedPaper = await downloadPaper(789);
+ * console.log(`Paper downloaded at: ${updatedPaper[0].downloaded_at}`);
  */
 export async function downloadPaper(downloaded_paper_id) {
   const { data, error } = await supabase
@@ -95,6 +144,24 @@ export async function downloadPaper(downloaded_paper_id) {
   return data; // Paper object with updated status/flags
 }
 
+/**
+ * Retrieves paginated list of Controller of Examinations (CoE) users.
+ *
+ * Fetches active (non-deleted) users with CoE role for administrative
+ * purposes and user management interfaces in Principal dashboard.
+ *
+ * @async
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page] - Page number for pagination (1-based)
+ * @returns {Promise<Object>} Paginated CoE users and total count
+ * @returns {Array<Object>} returns.data - Array of CoE user objects (employee_id, username, department_name, role)
+ * @returns {number} returns.count - Total count of active CoE users
+ * @throws {Error} If users cannot be loaded from database
+ *
+ * @example
+ * const result = await getCoE({ page: 1 });
+ * console.log(`Found ${result.count} CoE users`);
+ */
 export async function getCoE({ page }) {
   let query = supabase
     .from("users")

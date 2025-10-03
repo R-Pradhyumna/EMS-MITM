@@ -1,12 +1,148 @@
 /**
- * StatusTransitions
- * -----------------
- * Lookup-table that maps paper "status" and user "role" to:
- *  - label: Button/action label to show in UI (e.g. Approve, Lock)
- *  - update: Function that takes the paper and returns the status/state update object
- *  - confirm: Function that returns the confirmation string for the checkbox
+ * Paper Status Transition Configuration
  *
- * Used by ApprovePaper and role-specific approval screens.
+ * Lookup table defining paper approval workflow transitions based on current status
+ * and user role. Provides role-specific action labels, status updates, and confirmation
+ * messages for the multi-stage paper approval process.
+ *
+ * Workflow stages:
+ * 1. Faculty submits → Status: "Submitted"
+ * 2. CoE approves → Status: "CoE-approved"
+ * 3. BoE scrutinizes and approves → Status: "BoE-approved"
+ * 4. CoE locks → Status: "Locked" (final, ready for Principal)
+ *
+ * @module StatusTransitions
+ */
+
+/**
+ * Status transition configuration object.
+ *
+ * Maps each paper status to role-specific actions that can be performed.
+ * Each transition defines:
+ * - label: Button text shown in UI
+ * - update: Function returning status update object
+ * - confirm: Function returning confirmation message for checkbox
+ *
+ * Usage:
+ *   const transition = StatusTransitions[paper.status]?.[userRole];
+ *   if (transition) {
+ *     const buttonLabel = transition.label;
+ *     const updateData = transition.update(paper);
+ *     const confirmMsg = transition.confirm?.(paper);
+ *   }
+ *
+ * Transition structure:
+ * {
+ *   [paperStatus]: {
+ *     [userRole]: {
+ *       label: string,
+ *       update: (paper) => object,
+ *       confirm?: (paper) => string
+ *     }
+ *   }
+ * }
+ *
+ * @type {Object.<string, Object.<string, {label: string, update: Function, confirm?: Function}>>}
+ *
+ * @property {Object} Submitted - Transitions available when paper status is "Submitted"
+ * @property {Object} Submitted.CoE - CoE actions for submitted papers
+ * @property {string} Submitted.CoE.label - Button label: "Approve"
+ * @property {Function} Submitted.CoE.update - Returns {status: "CoE-approved"}
+ * @property {Function} Submitted.CoE.confirm - Returns confirmation message with uploader info
+ *
+ * @property {Object} CoE-approved - Transitions available when paper status is "CoE-approved"
+ * @property {Object} CoE-approved.BoE - BoE actions for CoE-approved papers
+ * @property {string} CoE-approved.BoE.label - Button label: "Approve"
+ * @property {Function} CoE-approved.BoE.update - Returns {status: "BoE-approved"}
+ *
+ * @property {Object} BoE-approved - Transitions available when paper status is "BoE-approved"
+ * @property {Object} BoE-approved.CoE - CoE actions for BoE-approved papers (final step)
+ * @property {string} BoE-approved.CoE.label - Button label: "Lock"
+ * @property {Function} BoE-approved.CoE.update - Returns {status: "Locked", is_locked: true}
+ * @property {Function} BoE-approved.CoE.confirm - Returns confirmation message with approver info
+ *
+ * @example
+ * // Get available action for current paper and user role
+ * function ApprovalButton({ paper, userRole }) {
+ *   const transition = StatusTransitions[paper.status]?.[userRole];
+ *
+ *   if (!transition) {
+ *     return <p>No action available for this paper status</p>;
+ *   }
+ *
+ *   const handleApprove = () => {
+ *     const updateData = transition.update(paper);
+ *     approvePaper({ id: paper.id, update: updateData });
+ *   };
+ *
+ *   return (
+ *     <button onClick={handleApprove}>
+ *       {transition.label} Paper #{paper.id}
+ *     </button>
+ *   );
+ * }
+ *
+ * @example
+ * // With confirmation checkbox
+ * function ApprovalForm({ paper, userRole }) {
+ *   const [confirmed, setConfirmed] = useState(false);
+ *   const transition = StatusTransitions[paper.status]?.[userRole];
+ *
+ *   if (!transition) return null;
+ *
+ *   const handleSubmit = (e) => {
+ *     e.preventDefault();
+ *     if (!confirmed) {
+ *       toast.error('Please confirm the approval');
+ *       return;
+ *     }
+ *     const updateData = transition.update(paper);
+ *     approvePaper({ id: paper.id, update: updateData });
+ *   };
+ *
+ *   return (
+ *     <form onSubmit={handleSubmit}>
+ *       {transition.confirm && (
+ *         <label>
+ *           <input
+ *             type="checkbox"
+ *             checked={confirmed}
+ *             onChange={(e) => setConfirmed(e.target.checked)}
+ *           />
+ *           {transition.confirm(paper)}
+ *         </label>
+ *       )}
+ *       <button type="submit" disabled={!confirmed}>
+ *         {transition.label}
+ *       </button>
+ *     </form>
+ *   );
+ * }
+ *
+ * @example
+ * // Display workflow progress
+ * function WorkflowProgress({ paper, userRole }) {
+ *   const statuses = ['Submitted', 'CoE-approved', 'BoE-approved', 'Locked'];
+ *   const currentIndex = statuses.indexOf(paper.status);
+ *
+ *   return (
+ *     <div className="workflow-progress">
+ *       {statuses.map((status, idx) => (
+ *         <div
+ *           key={status}
+ *           className={idx <= currentIndex ? 'completed' : 'pending'}
+ *         >
+ *           {status}
+ *         </div>
+ *       ))}
+ *       {StatusTransitions[paper.status]?.[userRole] && (
+ *         <p>
+ *           Next action: {StatusTransitions[paper.status][userRole].label}
+ *         </p>
+ *       )}
+ *     </div>
+ *   );
+ * }
  */
 const StatusTransitions = {
   // When status is "Submitted"

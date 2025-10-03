@@ -1,16 +1,16 @@
-import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
-import BPaperDataBox from "./BPaperDataBox";
-import Row from "../../ui/Row";
-import Heading from "../../ui/Heading";
-import ButtonGroup from "../../ui/ButtonGroup";
 import Button from "../../ui/Button";
+import ButtonGroup from "../../ui/ButtonGroup";
 import ButtonText from "../../ui/ButtonText";
+import Heading from "../../ui/Heading";
+import Row from "../../ui/Row";
+import BPaperDataBox from "./BPaperDataBox";
 
 import { useMoveBack } from "../../hooks/useMoveBack";
-import { useBPaper } from "./useBPaper";
 import Spinner from "../../ui/Spinner";
+import { useBPaper } from "./useBPaper";
 
 /* Group for the heading and status badge, aligned horizontally */
 const HeadingGroup = styled.div`

@@ -1,13 +1,13 @@
-import UserRow from "./UserRow";
-import Table from "../../ui/Table";
-import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
-import Spinner from "../../ui/Spinner";
+import Menus from "../../ui/Menus";
 import Pagination from "../../ui/Pagination";
+import Spinner from "../../ui/Spinner";
+import Table from "../../ui/Table";
 import { useGetFaculties } from "../boe/useGetFaculties";
-import { useUserData } from "./useUserData";
-import { useGetUsers } from "./../coe/useGetUsers";
 import { useGetCoE } from "../principal/useGetCoE";
+import { useGetUsers } from "./../coe/useGetUsers";
+import UserRow from "./UserRow";
+import { useUserData } from "./useUserData";
 
 function useGetUsersByRole(role) {
   switch (role) {

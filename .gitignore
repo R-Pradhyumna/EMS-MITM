@@ -24,3 +24,9 @@ dist-ssr
 *.sw?
 
 .env
+# Test coverage reports
+coverage/
+.nyc_output/
+
+# Vitest coverage
+.vitest/

@@ -4,9 +4,9 @@ import FormRow from "../../ui/FormRow";
 import Input from "../../ui/Input";
 
 import { useState } from "react";
-import { useUserData } from "./useUserData";
 import { useUpdateUser } from "./useUpdateUser";
 import { useUser } from "./useUser";
+import { useUserData } from "./useUserData";
 
 function UpdateUserDataForm() {
   const {

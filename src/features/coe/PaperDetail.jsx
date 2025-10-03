@@ -1,17 +1,17 @@
-import styled from "styled-components";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
 
-import PaperDataBox from "./PaperDataBox";
-import Row from "../../ui/Row";
-import Heading from "../../ui/Heading";
-import ButtonGroup from "../../ui/ButtonGroup";
 import Button from "../../ui/Button";
+import ButtonGroup from "../../ui/ButtonGroup";
 import ButtonText from "../../ui/ButtonText";
+import Heading from "../../ui/Heading";
+import Row from "../../ui/Row";
+import PaperDataBox from "./PaperDataBox";
 
 import { useMoveBack } from "../../hooks/useMoveBack";
-import { useCPaper } from "./useCPaper";
-import Spinner from "./../../ui/Spinner";
 import Empty from "./../../ui/Empty";
+import Spinner from "./../../ui/Spinner";
+import { useCPaper } from "./useCPaper";
 
 const HeadingGroup = styled.div`
   display: flex;

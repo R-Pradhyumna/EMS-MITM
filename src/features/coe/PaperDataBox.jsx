@@ -1,18 +1,18 @@
-import styled from "styled-components";
-import { useState } from "react";
 import { formatInTimeZone } from "date-fns-tz";
+import { useState } from "react";
+import toast from "react-hot-toast";
 import {
-  HiOutlineDocumentText,
   HiOutlineBookOpen,
-  HiOutlineUser,
-  HiOutlineCheckCircle,
   HiOutlineBuildingOffice,
   HiOutlineCalendar,
+  HiOutlineCheckCircle,
+  HiOutlineDocumentText,
+  HiOutlineUser,
 } from "react-icons/hi2";
-import DataItem from "../../ui/DataItem";
+import styled from "styled-components";
 import Button from "../../ui/Button";
+import DataItem from "../../ui/DataItem";
 import { useUploadScrutinizedFiles } from "../boe/useUploadScrutinizedFiles";
-import toast from "react-hot-toast";
 
 const StyledPaperDataBox = styled.section`
   background-color: var(--color-grey-0);

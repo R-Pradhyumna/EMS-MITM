@@ -1,12 +1,38 @@
+/**
+ * Faculty API Module
+ *
+ * Provides API functions for faculty-specific operations including:
+ * - Retrieving faculty's own submitted examination papers
+ * - Creating new exam paper submissions with file uploads
+ * - Editing existing exam paper submissions
+ *
+ * Handles atomic file uploads with automatic rollback on failure to maintain data consistency.
+ *
+ * @module apiFaculty
+ */
+
 // Import your Supabase client and constants
 import supabase, { supabaseUrl } from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
 
 /**
- * Fetches a paginated, descending list of exam papers
- * @param {Object} param0
- * @param {number} param0.page - Page number (1-based)
- * @returns {Promise<{data: Array, count: number}>}
+ * Fetches a paginated, descending list of exam papers submitted by a specific faculty member.
+ *
+ * Returns only papers uploaded by the specified employee, ordered by creation date (newest first).
+ * Includes essential fields for faculty dashboard display.
+ *
+ * @async
+ * @param {Object} params - Query parameters
+ * @param {number} [params.page] - Page number for pagination (1-based)
+ * @param {string} params.employee_id - Employee ID of the faculty member
+ * @returns {Promise<Object>} Paginated papers and total count
+ * @returns {Array<Object>} returns.data - Array of exam paper objects with id, subject_code, academic_year, subject_name, semester, status
+ * @returns {number} returns.count - Total count of papers uploaded by this faculty member
+ * @throws {Error} If papers cannot be loaded from database
+ *
+ * @example
+ * const result = await getPapers({ page: 1, employee_id: 'FAC001' });
+ * console.log(`Faculty has ${result.count} papers`);
  */
 export async function getPapers({ page, employee_id }) {
   // Start building the query: select all columns, return total count, order by newest first
@@ -38,12 +64,68 @@ export async function getPapers({ page, employee_id }) {
 }
 
 /**
- * Creates or edits a paper (handles file uploads and DB row insert/update)
- * @param {Object} newPaper - Input fields and files from form
- * @param {number|undefined} id - If present, updates existing record
- * @returns {Promise<Object>} - Saved record from the database
+ * Creates a new exam paper submission or edits an existing one.
+ *
+ * Handles complete exam paper submission workflow:
+ * - Uploads Question Paper and Scheme of Valuation files to storage
+ * - Creates/updates database record with metadata
+ * - Implements atomic operations with automatic rollback on failure
+ * - Supports partial updates (only uploads new files if provided)
+ *
+ * File upload behavior:
+ * - New submission: Both QP and Scheme files are required and uploaded
+ * - Edit operation: Only uploads files if new ones are provided in the form
+ * - Existing file URLs are preserved if no new files are selected
+ *
+ * Storage structure: papers/Academic Year YYYY/Department/SemX/Subject Name/
+ *
+ * @async
+ * @param {Object} newPaper - Form data containing paper metadata and files
+ * @param {FileList} [newPaper.qp_file] - Question Paper file array (DOCX format)
+ * @param {FileList} [newPaper.scheme_file] - Scheme of Valuation file array (DOCX format)
+ * @param {string} newPaper.subject_code - Unique subject code
+ * @param {string} newPaper.subject_name - Full subject name
+ * @param {string} newPaper.semester - Semester value
+ * @param {string|number} newPaper.academic_year - Academic year (e.g., 2024)
+ * @param {string} newPaper.department_name - Department name
+ * @param {string} [newPaper.qp_file_url] - Existing QP file URL (for edit operations)
+ * @param {string} [newPaper.scheme_file_url] - Existing Scheme file URL (for edit operations)
+ * @param {string} [newPaper.qp_file_type] - Existing QP file MIME type
+ * @param {string} [newPaper.scheme_file_type] - Existing Scheme file MIME type
+ * @param {string} newPaper.uploaded_by - Employee ID of the faculty member
+ * @param {number} [id] - Paper ID for edit operations (undefined for new submissions)
+ * @returns {Promise<Object>} Saved exam paper record from database
+ * @throws {Error} If file upload fails or database operation fails (triggers automatic cleanup)
+ *
+ * @example
+ * // Create new paper
+ * const newPaper = await createEditPapers({
+ *   qp_file: qpFileList,
+ *   scheme_file: schemeFileList,
+ *   subject_code: 'CS501',
+ *   subject_name: 'Data Structures',
+ *   semester: '5',
+ *   academic_year: 2024,
+ *   department_name: 'Computer Science',
+ *   uploaded_by: 'FAC001'
+ * });
+ *
+ * @example
+ * // Edit existing paper (only update QP file)
+ * const updatedPaper = await createEditPapers({
+ *   qp_file: newQpFileList,
+ *   subject_code: 'CS501',
+ *   subject_name: 'Data Structures',
+ *   semester: '5',
+ *   academic_year: 2024,
+ *   department_name: 'Computer Science',
+ *   qp_file_url: 'https://existing-url.com/qp.docx',
+ *   scheme_file_url: 'https://existing-url.com/scheme.docx',
+ *   qp_file_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+ *   scheme_file_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+ *   uploaded_by: 'FAC001'
+ * }, 123);
  */
-
 export async function createEditPapers(newPaper, id) {
   const {
     qp_file,

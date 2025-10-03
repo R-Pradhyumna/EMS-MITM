@@ -1,20 +1,114 @@
+/**
+ * Upload Scrutinized Files Mutation Hook
+ *
+ * Custom React Query mutation hook for uploading corrected (scrutinized)
+ * Question Paper and Scheme of Valuation files by Board of Examiners.
+ * Handles file upload, cache invalidation, and user feedback notifications.
+ *
+ * @module useUploadScrutinizedFiles
+ */
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { uploadScrutinizedFiles } from "../../services/apiBoE";
 
 /**
- * useUploadScrutinizedFiles
- * --------------------------
- * Custom React Query mutation hook for uploading scrutinized (corrected) QP and Schema files.
+ * Uploads scrutinized (corrected) QP and Scheme files after BoE review.
  *
- * Usage:
- *   const { mutate, isLoading } = useUploadScrutinizedFiles({ onSuccess });
- *   mutate({ paper, qpFile, schemaFile });
+ * Provides a mutation function for uploading corrected examination files
+ * after Board of Examiners scrutiny. On successful upload:
+ * - Uploads both QP and Scheme files to Supabase storage
+ * - Displays success toast notification
+ * - Invalidates exam_papers cache for immediate UI refresh
+ * - Executes optional callback for parent component logic
  *
- * - Calls the API to upload corrected files to Supabase/storage.
- * - Shows success or error toast messages automatically.
- * - Invalidates 'exam_papers' queries for live table refresh on upload completion.
- * - Accepts an onSuccess callback for parent-level UI reset or other post-upload logic.
+ * On upload failure:
+ * - Displays error toast with specific error message
+ * - Maintains current UI state
+ * - Allows user to retry upload
+ *
+ * File upload behavior:
+ * - Atomic operation (both files or none)
+ * - Automatic rollback on failure (see apiBoE.js)
+ * - Overwrites existing files with upsert
+ *
+ * React Query features:
+ * - Automatic cache invalidation for data consistency
+ * - Loading state management
+ * - Error handling with toast notifications
+ * - Optional success callback for custom post-upload logic
+ *
+ * @param {Object} options - Configuration options
+ * @param {Function} [options.onSuccess] - Optional callback executed after successful upload
+ * @returns {Object} Upload mutation object
+ * @returns {Function} returns.mutate - Mutation function to trigger upload
+ * @returns {boolean} returns.isLoading - True while upload is in progress
+ *
+ * @example
+ * // Basic usage with file upload form
+ * function ScrutinizedFilesUploadForm({ paper }) {
+ *   const { mutate: uploadFiles, isLoading } = useUploadScrutinizedFiles();
+ *   const [qpFile, setQpFile] = useState(null);
+ *   const [schemaFile, setSchemaFile] = useState(null);
+ *
+ *   const handleSubmit = (e) => {
+ *     e.preventDefault();
+ *     uploadFiles({ paper, qpFile, schemaFile });
+ *   };
+ *
+ *   return (
+ *     <form onSubmit={handleSubmit}>
+ *       <input
+ *         type="file"
+ *         onChange={(e) => setQpFile(e.target.files[0])}
+ *         accept=".docx"
+ *       />
+ *       <input
+ *         type="file"
+ *         onChange={(e) => setSchemaFile(e.target.files[0])}
+ *         accept=".docx"
+ *       />
+ *       <button type="submit" disabled={isLoading}>
+ *         {isLoading ? 'Uploading...' : 'Upload Scrutinized Files'}
+ *       </button>
+ *     </form>
+ *   );
+ * }
+ *
+ * @example
+ * // With custom success callback to reset form
+ * function ScrutinizedFilesUploadModal({ paper, onClose }) {
+ *   const { mutate: uploadFiles, isLoading } = useUploadScrutinizedFiles({
+ *     onSuccess: () => {
+ *       onClose(); // Close modal after successful upload
+ *     }
+ *   });
+ *
+ *   const handleUpload = (qpFile, schemaFile) => {
+ *     uploadFiles({ paper, qpFile, schemaFile });
+ *   };
+ *
+ *   return (
+ *     <Modal>
+ *       <h2>Upload Corrected Files</h2>
+ *       <FileUploadForm onSubmit={handleUpload} isLoading={isLoading} />
+ *     </Modal>
+ *   );
+ * }
+ *
+ * @example
+ * // With callback to navigate after upload
+ * function BoEScrutinyPage() {
+ *   const navigate = useNavigate();
+ *   const { mutate: uploadFiles, isLoading } = useUploadScrutinizedFiles({
+ *     onSuccess: (data) => {
+ *       console.log('Files uploaded:', data);
+ *       navigate('/boe/papers'); // Navigate back to papers list
+ *     }
+ *   });
+ *
+ *   return <UploadForm uploadFiles={uploadFiles} isLoading={isLoading} />;
+ * }
  */
 export function useUploadScrutinizedFiles({ onSuccess: onSuccessProp } = {}) {
   // Gives us the React Query cache client (for cache invalidation after mutation)
