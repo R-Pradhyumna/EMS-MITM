@@ -2,6 +2,7 @@ import { formatInTimeZone } from "date-fns-tz";
 import { useState } from "react";
 import toast from "react-hot-toast";
 import {
+  HiArrowDownTray,
   HiOutlineBookOpen,
   HiOutlineBuildingOffice,
   HiOutlineCalendar,
@@ -51,7 +52,6 @@ const Header = styled.header`
   }
 `;
 
-// NEW: Grid layout for two columns
 const GridSection = styled.section`
   padding: 3.2rem 4rem 1.2rem;
   display: grid;
@@ -60,7 +60,6 @@ const GridSection = styled.section`
   align-items: stretch;
 `;
 
-// NEW: Column containers
 const Column = styled.div`
   display: flex;
   flex-direction: column;
@@ -153,6 +152,7 @@ function PaperDataBox({ paper, role }) {
   function toggleEdit() {
     setIsEditing((prev) => {
       if (prev) {
+        // Clear files when canceling
         setScrutinizedQP(null);
         setScrutinizedSchema(null);
       }
@@ -174,7 +174,8 @@ function PaperDataBox({ paper, role }) {
           {status?.replace("-", " ") ?? "Unknown"}
         </Status>
       </Header>
-      {/* NEW: Two-column grid layout */}
+
+      {/* Two-column grid layout */}
       <GridSection>
         {/* Column 1: Subject, Uploaded by, Department */}
         <Column>
@@ -234,40 +235,58 @@ function PaperDataBox({ paper, role }) {
           )}
         </Column>
       </GridSection>
-      {/* BoE workflow sections remain the same */}
+
+      {/* BoE Download + Edit/Cancel Button - Inside the box */}
       {role === "BoE" && (
         <Section
           style={{
             display: "flex",
             alignItems: "center",
+            gap: "1rem",
             paddingTop: 0,
             paddingBottom: "1rem",
             width: "100%",
           }}
         >
-          {qp_file_url && (
-            <Button
-              as="a"
-              href={qp_file_url}
-              download
-              target="_blank"
-              style={{ marginRight: "1rem" }}
-            >
-              Download QP
-            </Button>
+          {/* Only show download buttons when NOT editing */}
+          {!isEditing && (
+            <>
+              {qp_file_url && (
+                <Button
+                  as="a"
+                  href={qp_file_url}
+                  download
+                  target="_blank"
+                  icon={<HiArrowDownTray />}
+                >
+                  Download QP
+                </Button>
+              )}
+              {scheme_file_url && (
+                <Button
+                  as="a"
+                  href={scheme_file_url}
+                  download
+                  target="_blank"
+                  icon={<HiArrowDownTray />}
+                >
+                  Download Schema
+                </Button>
+              )}
+            </>
           )}
-          {scheme_file_url && (
-            <Button as="a" href={scheme_file_url} download target="_blank">
-              Download Schema
-            </Button>
-          )}
+
+          {/* Spacer */}
           <div style={{ flex: 1 }} />
-          <Button variant="secondary" onClick={toggleEdit}>
+
+          {/* Edit/Cancel Button - Always visible */}
+          <Button onClick={toggleEdit}>
             {isEditing ? "Cancel" : "Edit Paper"}
           </Button>
         </Section>
       )}
-      {/* BoE file upload sections remain the same */}
+
+      {/* BoE file upload section - When editing */}
       {role === "BoE" && isEditing && (
         <>
           <Section>

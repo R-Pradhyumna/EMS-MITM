@@ -20,14 +20,8 @@ import { PAGE_SIZE } from "../utils/constants";
  * Results are ordered by creation date (newest first) and support multiple filter criteria.
  *
  * @async
- * @param {Object} params - Query parameters
- * @param {Array<Object>} [params.filters=[]] - Array of filter objects with field and value properties
- * @param {string} [params.search=""] - Subject code to search for (exact match)
- * @param {number} [params.page] - Page number for pagination (1-based)
- * @param {string} params.department_name - Department name to filter papers
- * @returns {Promise<Object>} Paginated papers and total count
- * @returns {Array<Object>} returns.data - Array of exam paper objects
- * @returns {number} returns.count - Total count of matching papers
+ * @param {import('./types').QueryOptions & {department_name: string}} params - Query parameters with department filter
+ * @returns {Promise<import('./types').PaginatedResponse<import('./types').ExamPaper>>} Paginated papers and total count
  * @throws {Error} If papers cannot be loaded from database
  *
  * @example
@@ -89,8 +83,8 @@ export async function getPapers({
  * Retrieves a single examination paper by its ID.
  *
  * @async
- * @param {number} id - Unique identifier of the exam paper
- * @returns {Promise<Object>} Complete exam paper object with all fields
+ * @param {number|string} id - Unique identifier of the exam paper
+ * @returns {Promise<import('./types').ExamPaper>} Complete exam paper object with all fields
  * @throws {Error} If paper is not found or database query fails
  *
  * @example
@@ -114,20 +108,19 @@ export async function getPaper(id) {
 /**
  * Approves and locks an examination paper after BoE review.
  *
- * Updates the paper's status and related fields (typically setting status to "Locked"
- * or "Approved" and recording approval metadata).
+ * Updates the paper's status and related fields (typically setting status to "BoE-approved"
+ * or "Locked" and recording approval metadata).
  *
  * @async
- * @param {number} id - Unique identifier of the exam paper to approve
- * @param {Object} obj - Update object containing approval data (status, timestamps, etc.)
- * @returns {Promise<Object>} Updated exam paper object
+ * @param {number|string} id - Unique identifier of the exam paper to approve
+ * @param {Partial<import('./types').ExamPaper>} obj - Update object containing approval data (status, timestamps, etc.)
+ * @returns {Promise<import('./types').ExamPaper>} Updated exam paper object
  * @throws {Error} If paper cannot be locked/approved
  *
  * @example
  * const approvedPaper = await approvePaper(123, {
- *   status: 'Locked',
- *   approved_at: new Date().toISOString(),
- *   approved_by: 'BoE Chair'
+ *   status: 'BoE-approved',
+ *   approved_by: 'EMP001'
  * });
  */
 export async function approvePaper(id, obj) {
@@ -155,13 +148,10 @@ export async function approvePaper(id, obj) {
  * - Files are stored in the paper's designated storage folder
  *
  * @async
- * @param {Object} paper - Exam paper object containing storage metadata
- * @param {string} paper.storage_folder_path - Storage folder path for the paper
+ * @param {import('./types').ExamPaper} paper - Exam paper object containing storage metadata
  * @param {File} qpFile - Corrected Question Paper file (DOCX format)
  * @param {File} schemaFile - Corrected Scheme of Valuation file (DOCX format)
- * @returns {Promise<Object>} Public URLs for uploaded files
- * @returns {string} returns.qp_file_url - Public URL of the uploaded QP file
- * @returns {string} returns.scheme_file_url - Public URL of the uploaded Scheme file
+ * @returns {Promise<{qp_file_url: string, scheme_file_url: string}>} Public URLs for uploaded files
  * @throws {Error} If either file is missing or upload fails
  *
  * @example
@@ -186,6 +176,7 @@ export async function uploadScrutinizedFiles(paper, qpFile, schemaFile) {
   const { error: qpError } = await supabase.storage
     .from("papers")
     .upload(qpFilename, qpFile, { cacheControl: "3600", upsert: true });
+
   if (qpError) throw new Error("Failed to upload corrected Question Paper");
 
   // Upload Scheme; if it fails, remove QP to maintain consistency
@@ -212,12 +203,8 @@ export async function uploadScrutinizedFiles(paper, qpFile, schemaFile) {
  * Results include employee ID, username, department name, and role.
  *
  * @async
- * @param {Object} params - Query parameters
- * @param {string} params.department_name - Department name to filter faculty
- * @param {number} [params.page] - Page number for pagination (1-based)
- * @returns {Promise<Object>} Paginated faculty list and total count
- * @returns {Array<Object>} returns.data - Array of faculty user objects
- * @returns {number} returns.count - Total count of active faculty in department
+ * @param {{department_name: string, page?: number}} params - Query parameters with department filter
+ * @returns {Promise<import('./types').PaginatedResponse<import('./types').User>>} Paginated faculty list and total count
  * @throws {Error} If faculties cannot be loaded from database
  *
  * @example
@@ -251,4 +238,40 @@ export async function getFaculties({ department_name, page }) {
 
   // Return paginated data and the total matching count
   return { data, count };
+}
+
+/**
+ * Generates a temporary signed URL for previewing a paper file online.
+ *
+ * Creates a time-limited (30 minutes) signed URL that allows BoE members
+ * to preview DOCX/DOC examination files in Office Online Viewer without downloading.
+ * The URL expires automatically for security. Respects Row Level Security policies.
+ *
+ * @async
+ * @param {string} filePath - Storage path or full URL of the file (from qp_file_url or scheme_file_url)
+ * @returns {Promise<string>} Signed URL valid for 30 minutes
+ * @throws {Error} If signed URL cannot be generated or user lacks permissions
+ *
+ * @example
+ * // Generate preview URL for question paper
+ * const previewUrl = await getFilePreviewUrl(paper.qp_file_url);
+ * const viewerUrl = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(previewUrl)}`;
+ * window.open(viewerUrl, '_blank');
+ */
+export async function getFilePreviewUrl(filePath) {
+  // Extract just the path portion (remove supabase URL prefix if present)
+  const path = filePath.includes("storage/v1/object/public/papers/")
+    ? filePath.split("storage/v1/object/public/papers/")[1]
+    : filePath;
+
+  const { data, error } = await supabase.storage
+    .from("papers")
+    .createSignedUrl(path, 1800); // 30 minutes = 1800 seconds
+
+  if (error) {
+    console.error("Signed URL generation error:", error);
+    throw new Error("Could not generate preview URL");
+  }
+
+  return data.signedUrl;
 }

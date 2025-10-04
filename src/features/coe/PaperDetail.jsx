@@ -1,16 +1,16 @@
+import { HiEye } from "react-icons/hi2"; // NEW
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
-
+import { useMoveBack } from "../../hooks/useMoveBack";
+import { usePreviewFile } from "../../hooks/usePreviewFile"; // NEW
 import Button from "../../ui/Button";
 import ButtonGroup from "../../ui/ButtonGroup";
 import ButtonText from "../../ui/ButtonText";
 import Heading from "../../ui/Heading";
 import Row from "../../ui/Row";
-import PaperDataBox from "./PaperDataBox";
-
-import { useMoveBack } from "../../hooks/useMoveBack";
 import Empty from "./../../ui/Empty";
 import Spinner from "./../../ui/Spinner";
+import PaperDataBox from "./PaperDataBox";
 import { useCPaper } from "./useCPaper";
 
 const HeadingGroup = styled.div`
@@ -26,7 +26,6 @@ const Status = styled.div`
   border-radius: var(--border-radius-sm);
   text-align: center;
   width: fit-content;
-
   background-color: ${({ status }) =>
     status === "Submitted"
       ? "var(--color-green-100)"
@@ -39,7 +38,6 @@ const Status = styled.div`
       : status === "Downloaded"
       ? "var(--color-blue-100)"
       : "var(--color-grey-100)"};
-
   color: ${({ status }) =>
     status === "Submitted"
       ? "var(--color-green-700)"
@@ -54,6 +52,20 @@ const Status = styled.div`
       : "var(--color-grey-700)"};
 `;
 
+// NEW: Styled container for button sections
+const ActionSection = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 2rem;
+  margin-top: 2.4rem;
+`;
+
+const ActionGroup = styled.div`
+  display: flex;
+  gap: 1rem;
+`;
+
 function PaperDetail() {
   // Fetch a single paper and loading state from custom data hook (e.g. by route param)
   const { paper, isLoading } = useCPaper();
@@ -61,6 +73,8 @@ function PaperDetail() {
   const moveBack = useMoveBack();
   // React Router navigate function (for redirecting to other routes)
   const navigate = useNavigate();
+  // NEW: Preview hook for viewing files online
+  const { previewFile, isGeneratingUrl } = usePreviewFile();
 
   // Show spinner while the data is still loading
   if (isLoading) return <Spinner />;
@@ -69,7 +83,7 @@ function PaperDetail() {
   if (!paper) return <Empty resourceName="paper" />;
 
   // Pull out status and ID for local reference/actions
-  const { status, id: paperId } = paper;
+  const { status, id: paperId, qp_file_url, scheme_file_url } = paper;
 
   // Main render: Page header, data details, and action buttons
   return (
@@ -78,8 +92,8 @@ function PaperDetail() {
       <Row type="horizontal">
         <HeadingGroup>
           <Heading as="h1">Paper {paperId}</Heading>
+          {/* Format status string for badge */}
           <Status status={status}>
-            {/* Format status string for badge */}
             {status?.replace("-", " ") ?? "Unknown"}
           </Status>
         </HeadingGroup>
@@ -92,24 +106,39 @@ function PaperDetail() {
       <PaperDataBox paper={paper} />
 
       {/* --- Page footer: contextual action buttons --- */}
-      <ButtonGroup>
-        {/* Show Approve button if paper is in "Submitted" state, goes to approval route */}
-        {status === "Submitted" && (
-          <Button onClick={() => navigate(`/approve/${paperId}`)}>
-            Approve
+      <ActionSection>
+        {/* Left: File Actions (Preview) */}
+        <ActionGroup>
+          <Button
+            onClick={() => previewFile(qp_file_url)}
+            disabled={isGeneratingUrl}
+            icon={<HiEye />}
+          >
+            Preview QP
           </Button>
-        )}
+          <Button
+            onClick={() => previewFile(scheme_file_url)}
+            disabled={isGeneratingUrl}
+            icon={<HiEye />}
+          >
+            Preview Scheme
+          </Button>
+        </ActionGroup>
 
-        {/* Show Lock button if already "BoE-approved" (next step in workflow) */}
-        {status === "BoE-approved" && (
-          <Button onClick={() => navigate(`/approve/${paperId}`)}>Lock</Button>
-        )}
-
-        {/* Always show secondary "Back" button */}
-        <Button variation="secondary" onClick={moveBack}>
-          Back
-        </Button>
-      </ButtonGroup>
+        {/* Right: Workflow Actions (Approve/Lock/Back) */}
+        <ActionGroup>
+          {status === "Submitted" && (
+            <Button onClick={() => navigate(`/approve/${paperId}`)}>
+              Approve
+            </Button>
+          )}
+          {status === "BoE-approved" && (
+            <Button onClick={() => navigate(`/approve/${paperId}`)}>
+              Lock
+            </Button>
+          )}
+        </ActionGroup>
+      </ActionSection>
     </>
   );
 }

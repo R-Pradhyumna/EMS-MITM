@@ -10,6 +10,8 @@
     "test:watch": "vitest --watch",
     "test:coverage": "vitest --coverage",
     "test:coverage:open": "vitest --coverage && open coverage/index.html",
+    "docs": "jsdoc -c jsdoc.json",
+    "docs:serve": "npm run docs && npx http-server ./docs -o",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -42,6 +44,7 @@
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "jsdoc": "^4.0.4",
     "jsdom": "^27.0.0",
     "supabase": "^2.24.3",
     "vite": "^6.3.1",
