@@ -20,9 +20,9 @@ import supabase from "./supabase";
  * 4. Auto-logs out if account is deactivated
  *
  * @async
- * @param {Object} credentials - User login credentials
- * @param {string} credentials.email - User's email address
- * @param {string} credentials.password - User's password
+ * @param {Object} credentials
+ *@param {string} credentials.email - User's email address
+ *@param {string} credentials.password - User's password
  * @returns {Promise<Object>} Authentication data including user and session information
  * @throws {Error} If authentication fails, user data not found, or account is deactivated
  *
@@ -31,6 +31,17 @@ import supabase from "./supabase";
  *   email: 'faculty@example.com',
  *   password: 'securepassword'
  * });
+ *
+ * @example
+ * // Handle authentication errors
+ * try {
+ *   const data = await login({ email, password });
+ *   console.log('Logged in as:', data.user.email);
+ * } catch (error) {
+ *   if (error.message.includes('deactivated')) {
+ *     console.error('Account is deactivated');
+ *   }
+ * }
  */
 export async function login({ email, password }) {
   // 1. Authenticate with Supabase Auth
@@ -69,13 +80,22 @@ export async function login({ email, password }) {
  * Returns null if no active session exists.
  *
  * @async
- * @returns {Promise<Object|null>} User object if authenticated, null otherwise
+ * @returns {Promise<Object|null>} Supabase auth user object if authenticated, null otherwise
  * @throws {Error} If there's an error retrieving user data
  *
  * @example
  * const currentUser = await getCurrentUser();
  * if (currentUser) {
  *   console.log('User is logged in:', currentUser.email);
+ * } else {
+ *   console.log('No active session');
+ * }
+ *
+ * @example
+ * // Use in authentication guard
+ * const user = await getCurrentUser();
+ * if (!user) {
+ *   navigate('/login');
  * }
  */
 export async function getCurrentUser() {
@@ -93,6 +113,7 @@ export async function getCurrentUser() {
  * Logs out the currently authenticated user.
  *
  * Terminates the user's session and clears authentication tokens.
+ * This will trigger a redirect to the login page in most application setups.
  *
  * @async
  * @returns {Promise<void>}
@@ -101,6 +122,15 @@ export async function getCurrentUser() {
  * @example
  * await logout();
  * // User is now logged out and redirected to login page
+ *
+ * @example
+ * // With error handling
+ * try {
+ *   await logout();
+ *   console.log('Logout successful');
+ * } catch (error) {
+ *   console.error('Logout failed:', error.message);
+ * }
  */
 export async function logout() {
   const { error } = await supabase.auth.signOut();
@@ -112,27 +142,35 @@ export async function logout() {
  * Updates the current user's profile information.
  *
  * Allows updating either the user's password or full name.
- * Only the provided fields will be updated.
+ * Only the provided fields will be updated. At least one field must be provided.
  *
  * @async
  * @param {Object} updates - Fields to update
- * @param {string} [updates.password] - New password (optional)
+ * @param {string} [updates.password] - New password (optional, min 6 characters)
  * @param {string} [updates.fullName] - New full name (optional)
- * @returns {Promise<Object>} Updated user data
+ * @returns {Promise<Object>} Updated Supabase auth user data
  * @throws {Error} If update operation fails
  *
  * @example
- * // Update password
+ * // Update password only
  * await updateCurrentUser({ password: 'newSecurePassword123' });
  *
  * @example
- * // Update full name
+ * // Update full name only
  * await updateCurrentUser({ fullName: 'Dr. John Smith' });
+ *
+ * @example
+ * // Update both fields
+ * await updateCurrentUser({
+ *   password: 'newPassword123',
+ *   fullName: 'Dr. Jane Doe'
+ * });
  */
 export async function updateCurrentUser({ password, fullName }) {
   let updateData;
   if (password) updateData = { password };
   if (fullName) updateData = { data: { fullName } };
+
   const { data: updatedData, error } = await supabase.auth.updateUser(
     updateData
   );
@@ -151,14 +189,29 @@ export async function updateCurrentUser({ password, fullName }) {
  * @async
  * @returns {Promise<Object>} User business data
  * @returns {string} returns.employee_id - User's employee identifier
- * @returns {string} returns.username - User's username
+ * @returns {string} returns.username - User's display name
  * @returns {string} returns.department_name - User's department name
- * @returns {string} returns.role - User's role (Faculty, CoE, BoE, Principal)
+ * @returns {('Faculty'|'BoE'|'CoE'|'Principal')} returns.role returns.role - User's role (Faculty, CoE, BoE, Principal)
  * @throws {Error} If no authenticated user found or user data doesn't exist in database
  *
  * @example
  * const userData = await fetchUserData();
  * console.log(`Role: ${userData.role}, Department: ${userData.department_name}`);
+ *
+ * @example
+ * // Use for role-based routing
+ * const { role } = await fetchUserData();
+ * if (role === 'Faculty') {
+ *   navigate('/faculty/dashboard');
+ * } else if (role === 'CoE') {
+ *   navigate('/coe/dashboard');
+ * }
+ *
+ * @example
+ * // Get employee information
+ * const userData = await fetchUserData();
+ * const greeting = `Welcome, ${userData.username}!`;
+ * console.log(greeting);
  */
 export async function fetchUserData() {
   const {

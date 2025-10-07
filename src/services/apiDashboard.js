@@ -19,19 +19,33 @@ import Papa from "papaparse";
  * Retrieves paginated list of Scheme of Valuation papers that have been downloaded.
  *
  * Fetches papers marked as downloaded (is_downloaded = true) with relevant metadata
- * for dashboard display and tracking purposes.
+ * for dashboard display and tracking purposes. Only includes essential fields for
+ * performance optimization.
  *
  * @async
  * @param {Object} params - Query parameters
  * @param {number} [params.page] - Page number for pagination (1-based)
  * @returns {Promise<Object>} Paginated SoV papers and total count
- * @returns {Array<Object>} returns.data - Array of paper objects with subject_code, academic_year, subject_name, semester, uploaded_by, scheme_file_url
+ * @returns {Array<Object>} returns.data - Array of paper objects
+ * @returns {string} returns.data[].subject_code - Subject code
+ * @returns {string} returns.data[].academic_year - Academic year
+ * @returns {string} returns.data[].subject_name - Subject name
+ * @returns {string} returns.data[].semester - Semester value
+ * @returns {string} returns.data[].uploaded_by - Employee ID of uploader
+ * @returns {string} returns.data[].scheme_file_url - URL to scheme file
  * @returns {number} returns.count - Total count of downloaded SoV papers
  * @throws {Error} If SoV papers cannot be loaded from database
  *
  * @example
  * const result = await getSchema({ page: 1 });
  * console.log(`Found ${result.count} downloaded SoV papers`);
+ *
+ * @example
+ * // Display all downloaded papers
+ * const result = await getSchema({});
+ * result.data.forEach(paper => {
+ *   console.log(`${paper.subject_code}: ${paper.scheme_file_url}`);
+ * });
  */
 export async function getSchema({ page }) {
   let query = supabase
@@ -70,6 +84,12 @@ export async function getSchema({ page }) {
  * Performs validation on all required fields and skips invalid rows while logging warnings.
  * Uses upsert operation to avoid duplicates based on subject_code.
  *
+ * CSV Format Requirements:
+ * - Header row must contain exact column names listed below
+ * - All fields are required (no empty values)
+ * - department_id must be numeric
+ * - All URL fields must be valid non-empty strings
+ *
  * Required CSV columns:
  * - subject_code: Unique subject identifier
  * - subject_name: Full name of the subject
@@ -83,7 +103,7 @@ export async function getSchema({ page }) {
  * - scheme_template_url: URL to scheme of valuation template
  *
  * @async
- * @param {File} file - CSV file object from user file input
+ * @param {File} file - CSV file object from user file input (text/csv or .csv extension)
  * @returns {Promise<Object>} Import results with statistics
  * @returns {*} returns.data - Database response data
  * @returns {number} returns.processed - Number of valid rows successfully imported
@@ -92,9 +112,22 @@ export async function getSchema({ page }) {
  * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
  *
  * @example
+ * // Basic file upload
  * const fileInput = document.getElementById('subjectsFile');
  * const result = await uploadSubjectsFile(fileInput.files[0]);
  * console.log(`Imported ${result.processed} subjects, skipped ${result.skipped}`);
+ *
+ * @example
+ * // With error handling
+ * try {
+ *   const result = await uploadSubjectsFile(file);
+ *   if (result.skipped > 0) {
+ *     console.warn(`Warning: ${result.skipped} rows were invalid`);
+ *   }
+ *   console.log(`Successfully imported ${result.processed}/${result.total} subjects`);
+ * } catch (error) {
+ *   console.error('Import failed:', error.message);
+ * }
  */
 export async function uploadSubjectsFile(file) {
   return new Promise((resolve, reject) => {
@@ -188,26 +221,46 @@ export async function uploadSubjectsFile(file) {
  *
  * Processes CSV file containing exam schedule data for bulk insertion.
  * Validates all required fields and data types before database insertion.
- * Invalid rows are filtered out and not imported.
+ * Invalid rows are filtered out silently and not imported.
+ *
+ * CSV Format Requirements:
+ * - Header row must contain exact column names
+ * - All fields are required (no empty values)
+ * - Numeric fields (department_id, subject_id, academic_year) must be valid numbers
+ * - exam_datetime must be in ISO format (YYYY-MM-DDTHH:mm)
  *
  * Required CSV columns:
- * - exam_name: Name/title of the examination
- * - department_id: Numeric department identifier
+ * - exam_name: Name/title of the examination (e.g., "Mid Term", "End Semester")
+ * - department_id: Numeric department identifier (FK to departments table)
  * - semester: Semester value (e.g., "5", "7")
- * - scheme: Examination scheme identifier
- * - exam_datetime: ISO format datetime (YYYY-MM-DDTHH:mm)
- * - subject_id: Numeric subject identifier
- * - academic_year: Numeric academic year (e.g., 2024)
+ * - scheme: Examination scheme identifier (e.g., "2022", "2018")
+ * - exam_datetime: ISO format datetime (YYYY-MM-DDTHH:mm or YYYY-MM-DD HH:mm:ss)
+ * - subject_id: Numeric subject identifier (FK to subjects table)
+ * - academic_year: Numeric academic year (e.g., 2024, 2025)
  *
  * @async
- * @param {File} file - CSV file object selected by CoE user in file input
+ * @param {File} file - CSV file object selected by CoE user (text/csv or .csv extension)
  * @returns {Promise<*>} Database response data from bulk insert operation
  * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
  *
  * @example
+ * // Basic exam schedule import
  * const fileInput = document.getElementById('scheduleFile');
  * const result = await uploadExamScheduleFile(fileInput.files[0]);
  * console.log('Exam schedule imported successfully');
+ *
+ * @example
+ * // With validation and feedback
+ * try {
+ *   const result = await uploadExamScheduleFile(file);
+ *   console.log(`Successfully imported ${result?.length || 'all'} exam schedules`);
+ * } catch (error) {
+ *   if (error.message.includes('No valid exam rows')) {
+ *     alert('CSV file contains no valid exam data. Please check format.');
+ *   } else {
+ *     console.error('Import failed:', error.message);
+ *   }
+ * }
  */
 export async function uploadExamScheduleFile(file) {
   return new Promise((resolve, reject) => {

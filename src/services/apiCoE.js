@@ -21,10 +21,10 @@ import { PAGE_SIZE } from "../utils/constants";
  *
  * @async
  * @param {Object} params - Query parameters
- * @param {Array<Object>} [params.filters=[]] - Array of filter objects with field and value properties
+ * @param {Array<Object>} [params.filters=[]] - Array of filter objects
  * @param {string} params.filters[].field - Database column name to filter on
- * @param {*} params.filters[].value - Value to filter by (string, number, or array for IN clause)
- * @param {string} [params.search=""] - Search string for subject_code (case-insensitive partial match)
+ * @param {string|number|Array} params.filters[].value - Value to filter by (string, number, or array for IN clause)
+ * @param {string} [params.search=""] - Search string for subject_code (case-insensitive)
  * @param {number} [params.page] - Page number for pagination (1-based)
  * @returns {Promise<Object>} Paginated papers and total count
  * @returns {Array<Object>} returns.data - Array of exam paper objects
@@ -44,6 +44,15 @@ import { PAGE_SIZE } from "../utils/constants";
  * const result = await getPapers({
  *   filters: [{ field: 'status', value: 'Locked' }],
  *   page: 1
+ * });
+ *
+ * @example
+ * // All locked papers across institution
+ * const result = await getPapers({
+ *   filters: [
+ *     { field: 'status', value: 'Locked' },
+ *     { field: 'academic_year', value: 2024 }
+ *   ]
  * });
  */
 export async function getPapers({ filters = [], search = "", page }) {
@@ -101,6 +110,15 @@ export async function getPapers({ filters = [], search = "", page }) {
  * @example
  * const paper = await getPaper(456);
  * console.log(`Loaded paper: ${paper.subject_name}`);
+ *
+ * @example
+ * // With error handling
+ * try {
+ *   const paper = await getPaper(456);
+ *   console.log('Paper status:', paper.status);
+ * } catch (error) {
+ *   console.error('Paper not found');
+ * }
  */
 export async function getPaper(id) {
   const { data, error } = await supabase
@@ -120,19 +138,30 @@ export async function getPaper(id) {
  * Approves or updates the status and fields of a specific exam paper.
  *
  * Used by CoE to lock papers after verification, update approval status,
- * or modify other paper attributes.
+ * or modify other paper attributes. This is the final approval step before
+ * papers become available for Principal download.
  *
  * @async
  * @param {number|string} id - The paper's database ID
- * @param {Object} obj - Object containing fields to update (e.g., { status: "Locked", approved_at: "2025-10-03" })
+ * @param {Object} obj - Object containing fields to update
+ * @param {string} [obj.status] - New status (e.g., "Locked")
+ * @param {string} [obj.locked_by] - Employee ID of the person locking
+ * @param {string} [obj.locked_at] - ISO timestamp of lock action
  * @returns {Promise<Object>} Updated exam paper object
  * @throws {Error} If paper cannot be locked or updated
  *
  * @example
+ * // Lock paper for final approval
  * const updatedPaper = await approvePaper(456, {
  *   status: 'Locked',
  *   locked_by: 'CoE Admin',
  *   locked_at: new Date().toISOString()
+ * });
+ *
+ * @example
+ * // Update status only
+ * const paper = await approvePaper(456, {
+ *   status: 'CoE-approved'
  * });
  */
 export async function approvePaper(id, obj) {
@@ -154,15 +183,26 @@ export async function approvePaper(id, obj) {
  * Retrieves all departments in the institution.
  *
  * Returns complete department list for dropdown menus, filtering options,
- * and department-based workflows.
+ * and department-based workflows. Used across CoE interfaces for filtering
+ * papers by department.
  *
  * @async
- * @returns {Promise<Array<Object>>} Array of department objects with id and name
+ * @returns {Promise<Array<Object>>} Array of department objects
+ * @returns {number} returns[].id - Department ID
+ * @returns {string} returns[].name - Department name
  * @throws {Error} If departments cannot be loaded from database
  *
  * @example
  * const departments = await getDepartments();
  * console.log(`Found ${departments.length} departments`);
+ *
+ * @example
+ * // Populate dropdown
+ * const depts = await getDepartments();
+ * const options = depts.map(d => ({
+ *   value: d.name,
+ *   label: d.name
+ * }));
  */
 export async function getDepartments() {
   const { data, error } = await supabase.from("departments").select("*");
@@ -179,14 +219,26 @@ export async function getDepartments() {
  *
  * Returns list of academic years for filtering and historical data access.
  * Used in dropdown filters to show available years with examination data.
+ * Results may contain duplicates (use Set to get unique values).
  *
  * @async
  * @returns {Promise<Array<Object>>} Array of objects containing academic_year values
+ * @returns {string|number} returns[].academic_year - Academic year value
  * @throws {Error} If academic years cannot be loaded from database
  *
  * @example
  * const years = await getAcademicYear();
  * const uniqueYears = [...new Set(years.map(y => y.academic_year))];
+ * console.log('Available years:', uniqueYears);
+ *
+ * @example
+ * // Populate year filter dropdown
+ * const data = await getAcademicYear();
+ * const uniqueYears = [...new Set(data.map(d => d.academic_year))];
+ * const yearOptions = uniqueYears.map(year => ({
+ *   value: year,
+ *   label: `Academic Year ${year}`
+ * }));
  */
 export async function getAcademicYear() {
   const { data, error } = await supabase
@@ -204,19 +256,32 @@ export async function getAcademicYear() {
  * Retrieves paginated list of BoE and Principal users.
  *
  * Fetches active (non-deleted) users with BoE or Principal roles for
- * administrative purposes and user management interfaces.
+ * administrative purposes and user management interfaces. Only returns
+ * non-sensitive user information (no passwords or auth data).
  *
  * @async
  * @param {Object} params - Query parameters
  * @param {number} [params.page] - Page number for pagination (1-based)
  * @returns {Promise<Object>} Paginated users and total count
- * @returns {Array<Object>} returns.data - Array of user objects (employee_id, username, department_name, role)
+ * @returns {Array<Object>} returns.data - Array of user objects
+ * @returns {string} returns.data[].employee_id - Employee identifier
+ * @returns {string} returns.data[].username - Display name
+ * @returns {string} returns.data[].department_name - Department name
+ * @returns {('BoE'|'Principal')} returns.data[].role - User role
  * @returns {number} returns.count - Total count of matching users
  * @throws {Error} If users cannot be loaded from database
  *
  * @example
  * const result = await getUsers({ page: 1 });
  * console.log(`Found ${result.count} BoE/Principal users`);
+ * result.data.forEach(user => {
+ *   console.log(`${user.username} - ${user.role}`);
+ * });
+ *
+ * @example
+ * // Get all users without pagination
+ * const result = await getUsers({});
+ * console.log('All admin users:', result.data);
  */
 export async function getUsers({ page }) {
   let query = supabase

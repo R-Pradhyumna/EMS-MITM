@@ -3,7 +3,6 @@
  *
  * Central type definitions for the entire application.
  * Import these types anywhere in your JSDoc comments using:
- * @type {import('./types').ExamPaper}
  *
  * @module types
  */

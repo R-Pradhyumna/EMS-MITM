@@ -19,20 +19,34 @@ import { PAGE_SIZE } from "../utils/constants";
  * Fetches a paginated, descending list of exam papers submitted by a specific faculty member.
  *
  * Returns only papers uploaded by the specified employee, ordered by creation date (newest first).
- * Includes essential fields for faculty dashboard display.
+ * Includes essential fields for faculty dashboard display. Supports pagination for large datasets.
  *
  * @async
  * @param {Object} params - Query parameters
  * @param {number} [params.page] - Page number for pagination (1-based)
  * @param {string} params.employee_id - Employee ID of the faculty member
  * @returns {Promise<Object>} Paginated papers and total count
- * @returns {Array<Object>} returns.data - Array of exam paper objects with id, subject_code, academic_year, subject_name, semester, status
+ * @returns {Array<Object>} returns.data - Array of exam paper objects
+ * @returns {number} returns.data[].id - Paper unique identifier
+ * @returns {string} returns.data[].subject_code - Subject code
+ * @returns {string} returns.data[].academic_year - Academic year
+ * @returns {string} returns.data[].subject_name - Subject name
+ * @returns {string} returns.data[].semester - Semester value
+ * @returns {('Submitted'|'CoE-approved'|'BoE-approved'|'Locked')} returns.data[].status - Paper status
  * @returns {number} returns.count - Total count of papers uploaded by this faculty member
  * @throws {Error} If papers cannot be loaded from database
  *
  * @example
+ * // Get first page of faculty's papers
  * const result = await getPapers({ page: 1, employee_id: 'FAC001' });
  * console.log(`Faculty has ${result.count} papers`);
+ *
+ * @example
+ * // Display all papers without pagination
+ * const result = await getPapers({ employee_id: 'FAC001' });
+ * result.data.forEach(paper => {
+ *   console.log(`${paper.subject_code}: ${paper.status}`);
+ * });
  */
 export async function getPapers({ page, employee_id }) {
   // Start building the query: select all columns, return total count, order by newest first
@@ -76,16 +90,22 @@ export async function getPapers({ page, employee_id }) {
  * - New submission: Both QP and Scheme files are required and uploaded
  * - Edit operation: Only uploads files if new ones are provided in the form
  * - Existing file URLs are preserved if no new files are selected
+ * - Uses upsert strategy to replace files at same path
  *
  * Storage structure: papers/Academic Year YYYY/Department/SemX/Subject Name/
  *
+ * Atomic operation guarantee:
+ * - If Scheme upload fails, QP file is automatically removed
+ * - If database insert/update fails, newly uploaded files are removed
+ * - Prevents orphaned files in storage
+ *
  * @async
  * @param {Object} newPaper - Form data containing paper metadata and files
- * @param {FileList} [newPaper.qp_file] - Question Paper file array (DOCX format)
- * @param {FileList} [newPaper.scheme_file] - Scheme of Valuation file array (DOCX format)
+ * @param {FileList} [newPaper.qp_file] - Question Paper file array (DOCX format, max 10MB)
+ * @param {FileList} [newPaper.scheme_file] - Scheme of Valuation file array (DOCX format, max 10MB)
  * @param {string} newPaper.subject_code - Unique subject code
  * @param {string} newPaper.subject_name - Full subject name
- * @param {string} newPaper.semester - Semester value
+ * @param {string} newPaper.semester - Semester value (e.g., "5", "7")
  * @param {string|number} newPaper.academic_year - Academic year (e.g., 2024)
  * @param {string} newPaper.department_name - Department name
  * @param {string} [newPaper.qp_file_url] - Existing QP file URL (for edit operations)
@@ -93,13 +113,13 @@ export async function getPapers({ page, employee_id }) {
  * @param {string} [newPaper.qp_file_type] - Existing QP file MIME type
  * @param {string} [newPaper.scheme_file_type] - Existing Scheme file MIME type
  * @param {string} newPaper.uploaded_by - Employee ID of the faculty member
- * @param {number} [id] - Paper ID for edit operations (undefined for new submissions)
- * @returns {Promise<Object>} Saved exam paper record from database
+ * @param {number} [id] - Paper ID for edit operations (undefined/null for new submissions)
+ * @returns {Promise<Object>} Saved exam paper record from database with all fields
  * @throws {Error} If file upload fails or database operation fails (triggers automatic cleanup)
  *
  * @example
- * // Create new paper
- * const newPaper = await createEditPapers({
+ * // Create new paper submission
+ * const formData = {
  *   qp_file: qpFileList,
  *   scheme_file: schemeFileList,
  *   subject_code: 'CS501',
@@ -108,11 +128,13 @@ export async function getPapers({ page, employee_id }) {
  *   academic_year: 2024,
  *   department_name: 'Computer Science',
  *   uploaded_by: 'FAC001'
- * });
+ * };
+ * const newPaper = await createEditPapers(formData);
+ * console.log('Paper created with ID:', newPaper.id);
  *
  * @example
- * // Edit existing paper (only update QP file)
- * const updatedPaper = await createEditPapers({
+ * // Edit existing paper (only update QP file, keep existing Scheme)
+ * const editData = {
  *   qp_file: newQpFileList,
  *   subject_code: 'CS501',
  *   subject_name: 'Data Structures',
@@ -124,7 +146,23 @@ export async function getPapers({ page, employee_id }) {
  *   qp_file_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
  *   scheme_file_type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
  *   uploaded_by: 'FAC001'
- * }, 123);
+ * };
+ * const updatedPaper = await createEditPapers(editData, 123);
+ *
+ * @example
+ * // With error handling
+ * try {
+ *   const paper = await createEditPapers(formData);
+ *   console.log('Paper submitted successfully');
+ * } catch (error) {
+ *   if (error.message.includes('Question Paper')) {
+ *     alert('Failed to upload QP file. Please try again.');
+ *   } else if (error.message.includes('Scheme')) {
+ *     alert('Failed to upload Scheme file. Please try again.');
+ *   } else {
+ *     alert('Submission failed. Please contact support.');
+ *   }
+ * }
  */
 export async function createEditPapers(newPaper, id) {
   const {
