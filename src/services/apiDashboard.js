@@ -79,52 +79,51 @@ export async function getSchema({ page }) {
 
 /**
  * Uploads and imports subjects from a CSV file with comprehensive validation.
- *
- * Processes CSV file containing subject data including all required document URLs.
- * Performs validation on all required fields and skips invalid rows while logging warnings.
- * Uses upsert operation to avoid duplicates based on subject_code.
- *
- * CSV Format Requirements:
- * - Header row must contain exact column names listed below
- * - All fields are required (no empty values)
- * - department_id must be numeric
- * - All URL fields must be valid non-empty strings
- *
- * Required CSV columns:
- * - subject_code: Unique subject identifier
- * - subject_name: Full name of the subject
- * - subject_type: Type/category of subject
- * - department_id: Numeric department identifier
- * - instructions_url: URL to subject instructions document
- * - syllabus_url: URL to syllabus document
- * - model_paper_url: URL to model question paper
- * - declaration_url: URL to declaration document
- * - see_template_url: URL to SEE template
- * - scheme_template_url: URL to scheme of valuation template
+ * Automatically maps department_name to department_id via database trigger.
+ * Validates all required fields and provides detailed error reporting for invalid rows.
  *
  * @async
- * @param {File} file - CSV file object from user file input (text/csv or .csv extension)
- * @returns {Promise<Object>} Import results with statistics
- * @returns {*} returns.data - Database response data
- * @returns {number} returns.processed - Number of valid rows successfully imported
- * @returns {number} returns.skipped - Number of invalid rows skipped
- * @returns {number} returns.total - Total number of rows in CSV file
- * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
+ * @param {File} file - CSV file object from user file input
+ * @returns {Promise<Object>} Import results with processing statistics
+ * @returns {*} returns.data - Database insert response data
+ * @returns {number} returns.processed - Count of successfully validated and imported rows
+ * @returns {number} returns.skipped - Count of invalid rows that were not imported
+ * @returns {number} returns.total - Total number of rows parsed from CSV
+ * @throws {Error} If no valid rows found or CSV parsing/database operation fails
+ *
+ * @description
+ * CSV Format Requirements (all fields required):
+ * - subject_code (string): Unique subject identifier (e.g., "M23BCS501")
+ * - subject_name (string): Full name of the subject (e.g., "Theory of Computation")
+ * - semester (string): Semester number (e.g., "1", "2", "3", etc.)
+ * - academic_year (number): Academic year (e.g., 2023, 2024)
+ * - subject_type (string, optional): Type/category of subject (defaults to "departmental")
+ * - department_name (string): Department name (e.g., "ISE", "CSE")
+ *   → Trigger automatically maps this to department_id; ensure department exists in database
+ *
+ * CSV Parsing Notes:
+ * - Column headers are automatically trimmed to handle whitespace
+ * - Empty lines are skipped
+ * - Non-numeric academic_year values cause row to be rejected
+ * - Missing or empty required fields cause row to be rejected
+ * - Invalid rows are logged to console for debugging
  *
  * @example
  * // Basic file upload
  * const fileInput = document.getElementById('subjectsFile');
  * const result = await uploadSubjectsFile(fileInput.files[0]);
- * console.log(`Imported ${result.processed} subjects, skipped ${result.skipped}`);
+ * console.log(`Imported ${result.processed}/${result.total} subjects`);
  *
  * @example
  * // With error handling
  * try {
  *   const result = await uploadSubjectsFile(file);
  *   if (result.skipped > 0) {
- *     console.warn(`Warning: ${result.skipped} rows were invalid`);
+ *     console.warn(`⚠️ Warning: ${result.skipped} rows were invalid and skipped`);
  *   }
- *   console.log(`Successfully imported ${result.processed}/${result.total} subjects`);
+ *   if (result.processed > 0) {
+ *     console.log(`✓ Successfully imported ${result.processed} subjects`);
+ *   }
  * } catch (error) {
  *   console.error('Import failed:', error.message);
  * }
@@ -134,60 +133,58 @@ export async function uploadSubjectsFile(file) {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      transformHeader: (header) => header.trim(), // ✅ Trim header whitespace
       complete: async function (results) {
         const subjects = results.data;
 
-        // Updated validation to include all 6 document URLs
         const requiredFields = [
           "subject_code",
           "subject_name",
-          "subject_type",
-          "department_id",
-          "instructions_url",
-          "syllabus_url",
-          "model_paper_url",
-          "declaration_url",
-          "see_template_url",
-          "scheme_template_url",
+          "semester",
+          "academic_year",
+          "department_name",
         ];
 
-        // Enhanced validation for all required fields including URLs
+        // Debug: Log first row to see what's being parsed
+        console.log("First row:", subjects[0]);
+        console.log("Available columns:", Object.keys(subjects[0] || {}));
+
         const validRows = subjects
           .filter((row) => {
-            return (
+            const isValid =
               requiredFields.every((field) => {
+                const value = row[field];
                 return (
-                  row[field] &&
-                  typeof row[field] === "string" &&
-                  row[field].trim() !== ""
+                  value && typeof value === "string" && value.trim() !== ""
                 );
-              }) && !isNaN(Number(row.department_id))
-            );
+              }) && !isNaN(Number(row.academic_year));
+
+            if (!isValid) {
+              console.warn("Invalid row:", row);
+            }
+
+            return isValid;
           })
           .map((row) => ({
-            subject_code: row.subject_code,
-            subject_name: row.subject_name,
-            subject_type: row.subject_type,
-            department_id: Number(row.department_id),
-            // Add the 6 document URLs
-            instructions_url: row.instructions_url,
-            syllabus_url: row.syllabus_url,
-            model_paper_url: row.model_paper_url,
-            declaration_url: row.declaration_url,
-            see_template_url: row.see_template_url,
-            scheme_template_url: row.scheme_template_url,
+            subject_code: row.subject_code.trim(),
+            subject_name: row.subject_name.trim(),
+            semester: row.semester.trim(),
+            academic_year: Number(row.academic_year),
+            subject_type: row.subject_type?.trim() || "departmental",
+            department_name: row.department_name.trim(),
           }));
 
         if (validRows.length === 0) {
           reject(
             new Error(
-              "No valid rows found. All fields including document URLs must be present for every subject!"
+              `No valid rows found. Required fields: ${requiredFields.join(
+                ", "
+              )}\n` + `First row parsed as: ${JSON.stringify(subjects[0])}`
             )
           );
           return;
         }
 
-        // Report skipped rows for debugging
         const skippedCount = subjects.length - validRows.length;
         if (skippedCount > 0) {
           console.warn(
@@ -195,10 +192,9 @@ export async function uploadSubjectsFile(file) {
           );
         }
 
-        // Upsert using subject_code to avoid duplicates
         const { data, error } = await supabase
           .from("subjects")
-          .upsert(validRows, { onConflict: ["subject_code"] });
+          .insert(validRows); // ✅ Simple insert, no conflict handling
 
         if (error) {
           reject(error);
@@ -217,48 +213,69 @@ export async function uploadSubjectsFile(file) {
 }
 
 /**
- * Uploads and imports exam schedules from a CSV file with validation.
- *
- * Processes CSV file containing exam schedule data for bulk insertion.
- * Validates all required fields and data types before database insertion.
- * Invalid rows are filtered out silently and not imported.
- *
- * CSV Format Requirements:
- * - Header row must contain exact column names
- * - All fields are required (no empty values)
- * - Numeric fields (department_id, subject_id, academic_year) must be valid numbers
- * - exam_datetime must be in ISO format (YYYY-MM-DDTHH:mm)
- *
- * Required CSV columns:
- * - exam_name: Name/title of the examination (e.g., "Mid Term", "End Semester")
- * - department_id: Numeric department identifier (FK to departments table)
- * - semester: Semester value (e.g., "5", "7")
- * - scheme: Examination scheme identifier (e.g., "2022", "2018")
- * - exam_datetime: ISO format datetime (YYYY-MM-DDTHH:mm or YYYY-MM-DD HH:mm:ss)
- * - subject_id: Numeric subject identifier (FK to subjects table)
- * - academic_year: Numeric academic year (e.g., 2024, 2025)
+ * Uploads and imports exam schedules from a CSV file with comprehensive validation.
+ * Automatically maps department_name to department_id via database trigger.
+ * Handles flexible date formats (DD-MM-YYYY and YYYY-MM-DD) with automatic conversion.
  *
  * @async
- * @param {File} file - CSV file object selected by CoE user (text/csv or .csv extension)
- * @returns {Promise<*>} Database response data from bulk insert operation
+ * @param {File} file - CSV file object from user file input (text/csv or .csv extension)
+ * @returns {Promise<Object>} Import results with processing statistics
+ * @returns {*} returns.data - Database insert response data
+ * @returns {number} returns.processed - Count of successfully validated and imported exam rows
+ * @returns {number} returns.skipped - Count of invalid rows that were not imported
+ * @returns {number} returns.total - Total number of rows parsed from CSV
  * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
+ *
+ * @description
+ * CSV Format Requirements (all fields required):
+ * - exam_name (string): Name/title of the examination (e.g., "ISE Sem 5 - TOC")
+ * - semester (string): Semester number (e.g., "5", "7")
+ * - exam_datetime (string): Date of exam in DD-MM-YYYY or YYYY-MM-DD format
+ *   → Automatically converted to YYYY-MM-DD before database insertion
+ * - academic_year (number): Academic year (e.g., 2023, 2024, 2025)
+ * - department_name (string): Department name (e.g., "ISE", "CSE")
+ *   → Trigger automatically maps this to department_id; ensure department exists
+ * - subject_name (string, optional): Name of subject being examined
+ *
+ * Date Format Handling:
+ * - Both DD-MM-YYYY and YYYY-MM-DD formats are accepted
+ * - Excel-formatted dates (DD-MM-YYYY) are automatically converted
+ * - Date validation occurs before database insertion
+ * - Invalid date formats cause row to be rejected
+ *
+ * CSV Parsing Notes:
+ * - Column headers are automatically trimmed to handle whitespace
+ * - Empty lines are skipped
+ * - Non-numeric semester and academic_year values cause row rejection
+ * - Missing or empty required fields cause row rejection
+ * - Invalid rows are skipped silently and logged to console for debugging
  *
  * @example
  * // Basic exam schedule import
- * const fileInput = document.getElementById('scheduleFile');
+ * const fileInput = document.getElementById('examScheduleFile');
  * const result = await uploadExamScheduleFile(fileInput.files[0]);
- * console.log('Exam schedule imported successfully');
+ * console.log(`Imported ${result.processed}/${result.total} exam schedules`);
  *
  * @example
- * // With validation and feedback
+ * // With comprehensive error handling and feedback
  * try {
  *   const result = await uploadExamScheduleFile(file);
- *   console.log(`Successfully imported ${result?.length || 'all'} exam schedules`);
+ *   if (result.processed === 0) {
+ *     alert('No valid exam records found in CSV');
+ *   } else {
+ *     console.log(`✓ Successfully imported ${result.processed} exams`);
+ *     if (result.skipped > 0) {
+ *       console.warn(`⚠️ Skipped ${result.skipped} invalid rows`);
+ *     }
+ *   }
  * } catch (error) {
  *   if (error.message.includes('No valid exam rows')) {
- *     alert('CSV file contains no valid exam data. Please check format.');
+ *     alert('CSV file format is invalid. Please check:\n' +
+ *           '- All required columns present\n' +
+ *           '- Date format is DD-MM-YYYY or YYYY-MM-DD\n' +
+ *           '- No empty cells in required fields');
  *   } else {
- *     console.error('Import failed:', error.message);
+ *     console.error('Exam import failed:', error.message);
  *   }
  * }
  */
@@ -267,50 +284,85 @@ export async function uploadExamScheduleFile(file) {
     Papa.parse(file, {
       header: true,
       skipEmptyLines: true,
+      transformHeader: (header) => header.trim(),
       complete: async function (results) {
         const exams = results.data;
 
-        // Validate: all columns required and correctly typed!
+        const requiredFields = [
+          "exam_name",
+          "semester",
+          "exam_datetime",
+          "academic_year",
+          "department_name",
+        ];
+
+        // ✅ Accept BOTH formats: YYYY-MM-DD and DD-MM-YYYY
+        const dateRegex = /^(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})$/;
+
+        console.log("Total rows parsed:", exams.length);
+        console.log("First row:", exams[0]);
+
         const validRows = exams
-          .filter(
-            (row) =>
-              row.exam_name &&
-              row.department_id &&
-              row.semester &&
-              row.scheme &&
-              row.exam_datetime &&
-              row.subject_id &&
-              row.academic_year &&
-              !isNaN(Number(row.department_id)) &&
-              !isNaN(Number(row.subject_id)) &&
-              !isNaN(Number(row.academic_year))
-          )
-          .map((row) => ({
-            exam_name: row.exam_name,
-            department_id: Number(row.department_id),
-            semester: row.semester,
-            scheme: row.scheme,
-            exam_datetime: row.exam_datetime, // Must be ISO format (YYYY-MM-DDTHH:mm)
-            subject_id: Number(row.subject_id),
-            academic_year: Number(row.academic_year),
-          }));
+          .filter((row) => {
+            return (
+              requiredFields.every((field) => {
+                const value = row[field];
+                return (
+                  value && typeof value === "string" && value.trim() !== ""
+                );
+              }) &&
+              dateRegex.test(row.exam_datetime.trim()) &&
+              !isNaN(Number(row.academic_year)) &&
+              !isNaN(Number(row.semester))
+            );
+          })
+          .map((row) => {
+            let dateStr = row.exam_datetime.trim();
+
+            // ✅ Convert DD-MM-YYYY to YYYY-MM-DD
+            if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+              const [day, month, year] = dateStr.split("-");
+              dateStr = `${year}-${month}-${day}`;
+            }
+
+            return {
+              exam_name: row.exam_name.trim(),
+              semester: row.semester.trim(),
+              exam_datetime: dateStr, // ✅ Now YYYY-MM-DD
+              academic_year: Number(row.academic_year),
+              department_name: row.department_name.trim(),
+              subject_name: row.subject_name?.trim() || null,
+            };
+          });
 
         if (validRows.length === 0) {
           reject(
             new Error(
-              "No valid exam rows found. Each row must fill all required fields!"
+              "No valid exam rows found. Date format can be YYYY-MM-DD or DD-MM-YYYY"
             )
           );
           return;
         }
 
-        // Bulk insert into 'exams' table
-        const { data, error } = await supabase.from("exams").insert(validRows);
+        const skippedCount = exams.length - validRows.length;
+        if (skippedCount > 0) {
+          console.warn(`Skipped ${skippedCount} invalid rows`);
+        }
+
+        const { data, error } = await supabase
+          .from("exams")
+          .insert(validRows)
+          .select();
 
         if (error) {
           reject(error);
         } else {
-          resolve(data);
+          resolve({
+            data,
+            processed: validRows.length,
+            skipped: skippedCount,
+            total: exams.length,
+          });
         }
       },
       error: (err) => reject(err),

@@ -22,6 +22,7 @@
  * - label: Button text shown in UI
  * - update: Function returning status update object
  * - confirm: Function returning confirmation message for checkbox (optional)
+ * - displayText: Function returning formatted uploader name and ID for UI display (optional)
  *
  * Usage:
  *   const transition = StatusTransitions[paper.status]?.[userRole];
@@ -29,6 +30,7 @@
  *     const buttonLabel = transition.label;
  *     const updateData = transition.update(paper);
  *     const confirmMsg = transition.confirm?.(paper);
+ *     const uploaderInfo = transition.displayText?.(paper); // New: Get uploader name + ID
  *   }
  *
  * Transition structure:
@@ -37,39 +39,50 @@
  *     [userRole]: {
  *       label: string,
  *       update: (paper) => object,
- *       confirm: (paper) => string (optional)
+ *       confirm: (paper) => string (optional),
+ *       displayText: (paper) => string (optional)
  *     }
  *   }
  * }
  *
- * @type {Object.<string, Object.<string, {label: string, update: Function, confirm: (Function|undefined)}>>}
+ * @type {Object.<string, Object.<string, {label: string, update: Function, confirm: (Function|undefined), displayText: (Function|undefined)}>>}
  *
  * @property {Object} Submitted - Transitions available when paper status is "Submitted"
  * @property {Object} Submitted.CoE - CoE actions for submitted papers
  * @property {string} Submitted.CoE.label - Button label: "Approve"
  * @property {Function} Submitted.CoE.update - Returns {status: "CoE-approved"}
  * @property {Function} Submitted.CoE.confirm - Returns confirmation message with uploader info
+ * @property {Function} Submitted.CoE.displayText - Returns formatted uploader name and ID
  *
  * @property {Object} CoE-approved - Transitions available when paper status is "CoE-approved"
  * @property {Object} CoE-approved.BoE - BoE actions for CoE-approved papers
  * @property {string} CoE-approved.BoE.label - Button label: "Approve"
  * @property {Function} CoE-approved.BoE.update - Returns {status: "BoE-approved"}
+ * @property {Function} CoE-approved.BoE.displayText - Returns formatted uploader name and ID
  *
  * @property {Object} BoE-approved - Transitions available when paper status is "BoE-approved"
  * @property {Object} BoE-approved.CoE - CoE actions for BoE-approved papers (final step)
  * @property {string} BoE-approved.CoE.label - Button label: "Lock"
  * @property {Function} BoE-approved.CoE.update - Returns {status: "Locked", is_locked: true}
  * @property {Function} BoE-approved.CoE.confirm - Returns confirmation message with approver info
+ * @property {Function} BoE-approved.CoE.displayText - Returns formatted uploader name and ID
  */
 
 const StatusTransitions = {
   // When status is "Submitted"
   Submitted: {
     CoE: {
-      label: "Approve", // Action button will read: "Approve paper #"
+      label: "Approve", // Action button will read: "Approve"
       update: (paper) => ({ status: "CoE-approved" }), // Sets new status
+      // ✅ NEW: Display uploader name and ID
+      displayText: (paper) =>
+        `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
+          paper.uploaded_by
+        })`,
       confirm: (paper) =>
-        `I confirm that ${paper.uploaded_by} has uploaded paper #${paper.id}`,
+        `I confirm that ${paper.uploader_name || paper.uploaded_by} (ID: ${
+          paper.uploaded_by
+        }) has uploaded paper #${paper.id}`,
     },
   },
   // When status is "CoE-approved"
@@ -77,6 +90,11 @@ const StatusTransitions = {
     BoE: {
       label: "Approve", // BoE now approves
       update: (paper) => ({ status: "BoE-approved" }), // Sets next status
+      // ✅ NEW: Display uploader name and ID
+      displayText: (paper) =>
+        `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
+          paper.uploaded_by
+        })`,
     },
   },
   // When status is "BoE-approved"
@@ -84,9 +102,15 @@ const StatusTransitions = {
     CoE: {
       label: "Lock", // Final approval step: Lock the paper
       update: (paper) => ({ status: "Locked", is_locked: true }),
+      // ✅ NEW: Display uploader name and ID
+      displayText: (paper) =>
+        `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
+          paper.uploaded_by
+        })`,
       confirm: (paper) =>
-        `I confirm that ${paper.approved_by || paper.uploaded_by} 
-           has approved paper #${paper.id}`,
+        `I confirm that ${
+          paper.approver_name || paper.approved_by || "Unknown"
+        } (ID: ${paper.approved_by}) has approved paper #${paper.id}`,
     },
   },
 };

@@ -90,7 +90,7 @@ function Pagination({ count }) {
         <span>
           {currentPage === pageCount ? count : currentPage * PAGE_SIZE}{" "}
         </span>
-        of <span>{count}</span> papers
+        of <span>{count}</span>
       </P>
       <Buttons>
         <PaginationButton onClick={prevPage} disabled={currentPage === 1}>
