@@ -6,7 +6,7 @@
  * - Bulk uploading subjects data via CSV import
  * - Bulk uploading exam schedules via CSV import
  *
- * Uses PapaParse for CSV parsing and validation before database operations.
+ * Uses Xlsx for xlsx parsing and validation before database operations.
  *
  * @module apiDashboard
  */

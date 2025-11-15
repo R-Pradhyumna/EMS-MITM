@@ -1,3 +1,5 @@
+import supabase from "../services/supabase";
+
 /**
  * Uploads and imports subjects from an XLSX file with comprehensive validation.
  * Automatically maps department_name to department_id via database trigger.
@@ -54,8 +56,8 @@
  */
 export async function uploadSubjectsFile(file) {
   // ✅ Dynamic import for tree shaking - only loads xlsx when needed
-  const { read, utils } = await import("xlsx");
-
+  const xlsx = await import("xlsx");
+  const { read, utils } = xlsx;
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 
@@ -256,8 +258,8 @@ export async function uploadSubjectsFile(file) {
  */
 export async function uploadExamScheduleFile(file) {
   // ✅ Dynamic import for tree shaking - only loads xlsx when needed
-  const { read, utils } = await import("xlsx");
-
+  const xlsx = await import("xlsx");
+  const { read, utils } = xlsx;
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
 

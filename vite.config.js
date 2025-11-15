@@ -1,23 +1,56 @@
-import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
+import { visualizer } from "rollup-plugin-visualizer";
+import { defineConfig } from "vite";
+import viteCompression from "vite-plugin-compression";
 
 export default defineConfig({
-  plugins: [react()],
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./src/tests/setupTests.js",
-    include: ["src/tests/**/*.test.{js,jsx}"],
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "json", "html"],
-      include: ["src/**/*.{js,jsx}"],
-      exclude: [
-        "src/tests/**",
-        "src/**/*.test.{js,jsx}",
-        "src/main.jsx",
-        "src/vite-env.d.ts",
-      ],
+  plugins: [
+    react(),
+    viteCompression({
+      verbose: true,
+      disable: false,
+      threshold: 10240,
+      algorithm: "gzip",
+      ext: ".gz",
+    }),
+    viteCompression({
+      verbose: true,
+      disable: false,
+      threshold: 10240,
+      algorithm: "brotliCompress",
+      ext: ".br",
+    }),
+    visualizer({
+      filename: "./dist/stats.html",
+      open: true,
+      gzipSize: true,
+      brotliSize: true,
+    }),
+  ],
+
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "query-vendor": ["@tanstack/react-query"],
+          supabase: ["@supabase/supabase-js"],
+          "spreadsheet-parser": ["xlsx"],
+        },
+      },
     },
+    cssCodeSplit: true,
+    minify: "esbuild",
+  },
+
+  optimizeDeps: {
+    include: [
+      "react",
+      "react-dom",
+      "react-router-dom",
+      "@tanstack/react-query",
+      "@supabase/supabase-js",
+      "xlsx",
+    ],
   },
 });

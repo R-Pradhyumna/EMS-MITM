@@ -1,7 +1,10 @@
+import { lazy } from "react";
 import styled from "styled-components";
-import GlobalStyles from "../styles/GlobalStyles";
+
 import Button from "./Button";
 import Heading from "./Heading";
+
+const GlobalStyles = lazy(() => import("../styles/GlobalStyles"));
 
 const StyledErrorFallback = styled.main`
   height: 100vh;
