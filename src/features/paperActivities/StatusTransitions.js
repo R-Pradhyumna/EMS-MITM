@@ -67,50 +67,47 @@
  * @property {Function} BoE-approved.CoE.confirm - Returns confirmation message with approver info
  * @property {Function} BoE-approved.CoE.displayText - Returns formatted uploader name and ID
  */
-
 const StatusTransitions = {
-  // When status is "Submitted"
   Submitted: {
     CoE: {
-      label: "Approve", // Action button will read: "Approve"
-      update: (paper) => ({ status: "CoE-approved" }), // Sets new status
-      // ✅ NEW: Display uploader name and ID
+      label: "Approve",
+      update: (paper) => ({ status: "CoE-approved" }),
       displayText: (paper) =>
-        `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
+        `Uploaded by: ${paper.users?.username || "Unknown"} (ID: ${
           paper.uploaded_by
         })`,
       confirm: (paper) =>
-        `I confirm that ${paper.uploader_name || paper.uploaded_by} (ID: ${
-          paper.uploaded_by
-        }) has uploaded paper #${paper.id}`,
+        `I confirm that ${
+          paper.users?.username || "Unknown"
+        } has reviewed and approved paper #${paper.id}`,
     },
   },
-  // When status is "CoE-approved"
   "CoE-approved": {
     BoE: {
-      label: "Approve", // BoE now approves
-      update: (paper) => ({ status: "BoE-approved" }), // Sets next status
-      // ✅ NEW: Display uploader name and ID
+      label: "Approve",
+      update: (paper) => ({ status: "BoE-approved" }),
       displayText: (paper) =>
-        `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
+        `Uploaded by: ${paper.users?.username || "Unknown"} (ID: ${
           paper.uploaded_by
         })`,
+      confirm: (paper) =>
+        `I confirm that ${
+          paper.users?.username || "Unknown"
+        } has reviewed and approved paper #${paper.id}`,
     },
   },
-  // When status is "BoE-approved"
   "BoE-approved": {
     CoE: {
-      label: "Lock", // Final approval step: Lock the paper
+      label: "Lock",
       update: (paper) => ({ status: "Locked", is_locked: true }),
-      // ✅ NEW: Display uploader name and ID
       displayText: (paper) =>
         `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
           paper.uploaded_by
         })`,
       confirm: (paper) =>
         `I confirm that ${
-          paper.approver_name || paper.approved_by || "Unknown"
-        } (ID: ${paper.approved_by}) has approved paper #${paper.id}`,
+          paper.approver_user?.username || "Unknown"
+        } has reviewed and approved paper #${paper.id}`,
     },
   },
 };

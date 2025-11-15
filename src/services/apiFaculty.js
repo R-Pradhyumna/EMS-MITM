@@ -12,8 +12,8 @@
  */
 
 // Import your Supabase client and constants
-import supabase, { supabaseUrl } from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
+import supabase, { supabaseUrl } from "./supabase";
 
 /**
  * Fetches a paginated, descending list of exam papers submitted by a specific faculty member.
@@ -168,6 +168,7 @@ export async function createEditPapers(newPaper, id) {
   const {
     qp_file,
     scheme_file,
+    declaration_file,
     subject_code,
     subject_name,
     semester,
@@ -175,16 +176,14 @@ export async function createEditPapers(newPaper, id) {
     department_name,
     qp_file_url: existingQpFileUrl, // Add these to form defaults
     scheme_file_url: existingSchemeFileUrl, // (these are from DB/form)
-    qp_file_type: existingQpFileType,
-    scheme_file_type: existingSchemeFileType,
+    declaration_file_url: existingDeclarationFileUrl,
     uploaded_by,
   } = newPaper;
 
-  const folderPath = `Academic Year ${academic_year}/${department_name}/Sem${semester}/${subject_name}`;
+  const folderPath = `Academic Year ${academic_year}/${department_name}/Sem${semester}/${subject_name}/${uploaded_by}`;
 
   // Question Paper - Only upload if a new file is provided
   let qp_file_url = existingQpFileUrl;
-  let qp_file_type = existingQpFileType;
   if (qp_file && qp_file.length > 0) {
     const qpFilename = `papers/${folderPath}/QP.docx`;
     const { error: qpError } = await supabase.storage
@@ -192,12 +191,10 @@ export async function createEditPapers(newPaper, id) {
       .upload(qpFilename, qp_file[0], { cacheControl: "3600", upsert: true });
     if (qpError) throw new Error("Failed to upload Question Paper");
     qp_file_url = `${supabaseUrl}/storage/v1/object/public/papers/${qpFilename}`;
-    qp_file_type = qp_file[0].type;
   }
 
   // Scheme File - Only upload if a new file is provided
   let scheme_file_url = existingSchemeFileUrl;
-  let scheme_file_type = existingSchemeFileType;
   if (scheme_file && scheme_file.length > 0) {
     const schemeFilename = `papers/${folderPath}/Scheme.docx`;
     const { error: schemeError } = await supabase.storage
@@ -215,7 +212,32 @@ export async function createEditPapers(newPaper, id) {
       throw new Error("Failed to upload Scheme of Valuation");
     }
     scheme_file_url = `${supabaseUrl}/storage/v1/object/public/papers/${schemeFilename}`;
-    scheme_file_type = scheme_file[0].type;
+  }
+
+  // Declaration image upload
+  let declaration_file_url = existingDeclarationFileUrl;
+  if (declaration_file && declaration_file.length > 0) {
+    const declarationFilename = `declarations/${folderPath}/Declaration.${declaration_file[0].name
+      .split(".")
+      .pop()}`;
+    const { error: declarationError } = await supabase.storage
+      .from("declarations")
+      .upload(declarationFilename, declaration_file[0], {
+        cacheControl: "3600",
+        upsert: true,
+      });
+    if (declarationError) {
+      if (qp_file && qp_file.length > 0) {
+        const qpFilename = `papers/${folderPath}/QP.docx`;
+        await supabase.storage.from("papers").remove([qpFilename]);
+      }
+      if (scheme_file && scheme_file.length > 0) {
+        const schemeFilename = `papers/${folderPath}/Scheme.docx`;
+        await supabase.storage.from("papers").remove([schemeFilename]);
+      }
+      throw new Error("Failed to upload Declaration image");
+    }
+    declaration_file_url = `${supabaseUrl}/storage/v1/object/public/declarations/${declarationFilename}`;
   }
 
   // Build the DB row payload (files unchanged unless new selected)
@@ -227,8 +249,7 @@ export async function createEditPapers(newPaper, id) {
     department_name,
     qp_file_url,
     scheme_file_url,
-    qp_file_type,
-    scheme_file_type,
+    declaration_file_url,
     storage_folder_path: folderPath,
     uploaded_by,
     status: "Submitted",
@@ -248,9 +269,14 @@ export async function createEditPapers(newPaper, id) {
       const schemeFilename = `papers/${folderPath}/Scheme.docx`;
       await supabase.storage.from("papers").remove([schemeFilename]);
     }
+    if (declaration_file && declaration_file.length > 0) {
+      const declarationFilename = `declarations/${folderPath}/Declaration.${declaration_file[0].name
+        .split(".")
+        .pop()}`;
+      await supabase.storage.from("declarations").remove([declarationFilename]);
+    }
     console.error(error);
     throw new Error("Could not save paper metadata in DB");
   }
-
   return data;
 }

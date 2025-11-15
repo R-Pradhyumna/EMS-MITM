@@ -1,15 +1,15 @@
-import styled from "styled-components";
 import { useForm } from "react-hook-form";
+import styled from "styled-components";
 import Button from "../../ui/Button";
 import FileInput from "../../ui/FileInput";
 import Form from "../../ui/Form";
 import Input from "../../ui/Input";
 import FormRow from "./../../ui/FormRow";
 
+import { useDepartments } from "../../hooks/useDepartments";
+import { useUserData } from "../authentication/useUserData";
 import { useCreatePaper } from "./useCreatePaper";
 import { useEditPaper } from "./useEditPaper";
-import { useUserData } from "../authentication/useUserData";
-import { useDepartments } from "../../hooks/useDepartments";
 
 const StyledSelect = styled.select`
   font-size: 1.2rem;
@@ -59,6 +59,10 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
       data.qp_file && data.qp_file.length > 0 ? data.qp_file : [];
     const schemeFileArray =
       data.scheme_file && data.scheme_file.length > 0 ? data.scheme_file : [];
+    const declarationFileArray =
+      data.declaration_file && data.declaration_file.length > 0
+        ? data.declaration_file
+        : [];
 
     const basePayload = {
       subject_code: data.subject_code,
@@ -68,6 +72,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
       department_name: data.department_name,
       qp_file: qpFileArray,
       scheme_file: schemeFileArray,
+      declaration_file: declarationFileArray,
       uploaded_by: employee_id, // <-- Always include this!
     };
 
@@ -77,8 +82,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
         ...basePayload,
         qp_file_url: paperToEdit.qp_file_url,
         scheme_file_url: paperToEdit.scheme_file_url,
-        qp_file_type: paperToEdit.qp_file_type,
-        scheme_file_type: paperToEdit.scheme_file_type,
+        declaration_file_url: paperToEdit.declaration_file_url,
       };
       editPaper(
         { newPaper: payload, id: editId },
@@ -100,53 +104,6 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
     }
   }
 
-  // function onSubmit(data) {
-  //   // For file inputs: array of File, or empty array if not present
-  //   const qpFileArray =
-  //     data.qp_file && data.qp_file.length > 0 ? data.qp_file : [];
-  //   const schemeFileArray =
-  //     data.scheme_file && data.scheme_file.length > 0 ? data.scheme_file : [];
-
-  //   const payload = {
-  //     subject_code: data.subject_code,
-  //     subject_name: data.subject_name,
-  //     semester: data.semester,
-  //     academic_year: Number(data.academic_year),
-  //     department_name: data.department_name,
-  //     qp_file: qpFileArray, // <-- ALWAYS array
-  //     scheme_file: schemeFileArray, // <-- ALWAYS array
-  //     qp_file_url: paperToEdit.qp_file_url,
-  //     scheme_file_url: paperToEdit.scheme_file_url,
-  //     qp_file_type: paperToEdit.qp_file_type,
-  //     scheme_file_type: paperToEdit.scheme_file_type,
-  //     uploaded_by: employee_id,
-  //   };
-
-  //   // For edit:
-  //   if (isEditSession) {
-  //     editPaper(
-  //       { newPaper: payload, id: editId },
-  //       {
-  //         onSuccess: () => {
-  //           reset();
-  //           onCloseModal?.();
-  //         },
-  //       }
-  //     );
-  //   } else {
-  //     // For create:
-  //     createPaper(
-  //       { ...data },
-  //       {
-  //         onSuccess: () => {
-  //           reset();
-  //           onCloseModal?.();
-  //         },
-  //       }
-  //     );
-  //   }
-  // }
-
   // Render the controlled form with all fields
   return (
     <Form
@@ -162,6 +119,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           {...register("subject_code", {
             required: "This field is required!",
             maxLength: { value: 10, message: "Max 10 characters" }, // correct for strings
+            setValueAs: (v) => v.toUpperCase(), // always uppercase
           })}
         />
       </FormRow>
@@ -174,6 +132,7 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           disabled={isWorking}
           {...register("subject_name", {
             required: "This field is required",
+            setValueAs: (v) => v.toUpperCase(), // always uppercase
           })}
         />
       </FormRow>
@@ -248,6 +207,19 @@ function CreatePaperForm({ paperToEdit = {}, onCloseModal }) {
           id="scheme_file"
           accept=".doc,.docx"
           {...register("scheme_file", {
+            required: !isEditSession ? "This field is required!" : false, // required only when adding!
+          })}
+        />
+      </FormRow>
+
+      <FormRow
+        label="Declaration File (.jpg/.png/.jpeg)"
+        error={errors?.declaration_file?.message}
+      >
+        <FileInput
+          id="declaration_file"
+          accept=".jpg,.png,.jpeg"
+          {...register("declaration_file", {
             required: !isEditSession ? "This field is required!" : false, // required only when adding!
           })}
         />

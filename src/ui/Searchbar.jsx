@@ -1,7 +1,7 @@
-import styled from "styled-components";
-import { useSearchParams } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { HiMagnifyingGlass } from "react-icons/hi2";
+import { useSearchParams } from "react-router-dom";
+import styled from "styled-components";
 
 const StyledSearchBar = styled.div`
   border: 1px solid var(--color-grey-100);
@@ -25,6 +25,7 @@ const StyledInput = styled.input`
   background-color: var(--color-grey-0);
   color: #22223b;
   box-shadow: var(--shadow-xs);
+  text-transform: uppercase;
 
   &::placeholder {
     color: #a0aec0;
@@ -53,13 +54,13 @@ function SearchBar({ paramKey = "subject_code" }) {
         setSearchParams(newSearchParams);
       }
       // If inputValue didn't change from prevValue, don't touch page
-    }, 700);
+    }, 800);
 
     return () => clearTimeout(handler);
   }, [inputValue, paramKey, setSearchParams]);
 
   function handleChange(e) {
-    setInputValue(e.target.value);
+    setInputValue(e.target.value.toUpperCase());
   }
 
   return (

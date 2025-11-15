@@ -1,7 +1,8 @@
-import Row from "../ui/Row";
-import Heading from "../ui/Heading";
 import CoETable from "../features/coe/CoETable";
 import CoETableOperations from "../features/coe/CoETableOperations";
+
+import Heading from "../ui/Heading";
+import Row from "../ui/Row";
 
 function CoE() {
   return (

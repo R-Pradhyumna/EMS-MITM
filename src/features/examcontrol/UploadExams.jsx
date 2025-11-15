@@ -1,9 +1,11 @@
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
-import Button from "../../ui/Button";
-import { uploadExamScheduleFile } from "../../services/apiDashboard";
 
-export function UploadExams() {
+import Button from "../../ui/Button";
+
+import { uploadExamScheduleFile } from "../../services/apiExam";
+
+function UploadExams() {
   const fileInputRef = useRef();
   const [isUploading, setIsUploading] = useState(false);
 
@@ -67,3 +69,5 @@ export function UploadExams() {
     </>
   );
 }
+
+export default UploadExams;

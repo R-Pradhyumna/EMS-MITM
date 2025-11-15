@@ -1,15 +1,18 @@
 import { useState } from "react";
 import styled from "styled-components";
+
 import PaperDataBox from "../coe/PaperDataBox";
-import Row from "../../ui/Row";
-import Heading from "../../ui/Heading";
-import ButtonGroup from "../../ui/ButtonGroup";
+import BPaperDataBox from "../boe/BPaperDataBox";
+import StatusTransitions from "./StatusTransitions";
+
 import Button from "../../ui/Button";
+import ButtonGroup from "../../ui/ButtonGroup";
 import ButtonText from "../../ui/ButtonText";
 import Checkbox from "../../ui/Checkbox";
-import Spinner from "../../ui/Spinner";
+import Heading from "../../ui/Heading";
+import Row from "../../ui/Row";
+
 import { useMoveBack } from "../../hooks/useMoveBack";
-import StatusTransitions from "./StatusTransitions";
 import { useApproval } from "./useApproval";
 
 // Styled container for the action/confirmation area
@@ -32,7 +35,7 @@ const Box = styled.div`
  */
 function ApprovePaper({ role, usePaperHook }) {
   // Data and loading state for the currently viewed paper (custom data hook)
-  const { paper, isLoading } = usePaperHook();
+  const { paper } = usePaperHook();
   const moveBack = useMoveBack(); // Go back in navigation/routing
 
   // State: Has the user checked the confirmation box before approve/lock?
@@ -41,12 +44,12 @@ function ApprovePaper({ role, usePaperHook }) {
   // Mutation hook for performing status change/approval logic
   const { mutate, isLoading: isApproving } = useApproval({ role });
 
-  // Show spinner while loading, or fallback for missing paper
-  if (isLoading) return <Spinner />;
-  if (!paper) return <div>No paper found.</div>;
+  if (!paper) return <Empty resourceName="papers" />;
 
   // Current paper ID and status
   const { id, status } = paper;
+  // Render PaperDataBox or BPaperDataBox based on role
+  const PaperComponent = role === "boe" ? BPaperDataBox : PaperDataBox;
   // Determine possible transitions for the current status/role
   const transitions = StatusTransitions[status] || {};
   const transition = transitions[role];
@@ -69,9 +72,9 @@ function ApprovePaper({ role, usePaperHook }) {
       </Row>
 
       {/* Paper details/info card */}
-      <PaperDataBox paper={paper} role={role} />
+      <PaperComponent paper={paper} role={role} />
 
-      {/* --- Action/Confirmation Section: Only if transition is valid for current status/role --- */}
+      {/* --- Acation/Confirmation Section: Only if transition is valid for current status/role --- */}
       {transition && transition.confirm && (
         <Box>
           <Checkbox

@@ -4,7 +4,6 @@ import styled from "styled-components";
 import { useMoveBack } from "../../hooks/useMoveBack";
 import { usePreviewFile } from "../../hooks/usePreviewFile"; // NEW
 import Button from "../../ui/Button";
-import ButtonGroup from "../../ui/ButtonGroup";
 import ButtonText from "../../ui/ButtonText";
 import Heading from "../../ui/Heading";
 import Row from "../../ui/Row";

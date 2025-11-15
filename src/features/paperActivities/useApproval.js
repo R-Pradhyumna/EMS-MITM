@@ -9,10 +9,10 @@
  */
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { approvePaper as approveCoEPaper } from "../../services/apiCoE"; // CoE API
-import { approvePaper as approveBoEPaper } from "../../services/apiBoE"; // BoE API
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import { approvePaper as approveBoEPaper } from "../../services/apiBoE"; // BoE API
+import { approvePaper as approveCoEPaper } from "../../services/apiCoE"; // CoE API
 
 /**
  * Approves and locks examination papers with role-based navigation.

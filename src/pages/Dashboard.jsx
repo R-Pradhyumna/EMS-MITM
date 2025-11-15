@@ -1,15 +1,16 @@
-import Row from "../ui/Row";
-import Heading from "../ui/Heading";
+import DashboardStats from "../features/dashboard/DashboardStats";
 import DashboardTable from "../features/dashboard/DashboardTable";
-import DashboardTableOperations from "../features/dashboard/DashboardTableOperations";
+
+import Heading from "../ui/Heading";
+import Row from "../ui/Row";
 
 function Dashboard() {
   return (
     <>
       <Row type="horizontal">
         <Heading as="h1">CoE Dashboard</Heading>
-        <DashboardTableOperations />
       </Row>
+      <DashboardStats />
       <DashboardTable />
     </>
   );

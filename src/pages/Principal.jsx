@@ -1,7 +1,8 @@
-import Row from "../ui/Row";
-import Heading from "../ui/Heading";
-import PrincipalTable from "./../features/principal/PrincipalTable";
 import PrincipalTableOperations from "../features/principal/PrincipalTableOperations";
+import Heading from "../ui/Heading";
+import Row from "../ui/Row";
+import PrincipalTable from "./../features/principal/PrincipalTable";
+
 function Principal() {
   return (
     <>

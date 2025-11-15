@@ -1,5 +1,6 @@
 import {
   HiAcademicCap,
+  HiChartBar,
   HiCog6Tooth,
   HiGlobeAlt,
   HiOutlineHome,
@@ -79,6 +80,12 @@ const navLinksConfig = [
   {
     path: "/dashboard",
     label: "Dashboard",
+    icon: <HiChartBar />,
+    allowedRoles: ["CoE"],
+  },
+  {
+    path: "/control",
+    label: "Exam Control",
     icon: <HiCog6Tooth />,
     allowedRoles: ["CoE"],
   },

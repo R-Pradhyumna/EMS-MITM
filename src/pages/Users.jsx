@@ -1,6 +1,6 @@
-import Row from "../ui/Row";
-import Heading from "../ui/Heading";
 import UserTable from "../features/authentication/UserTable";
+import Heading from "../ui/Heading";
+import Row from "../ui/Row";
 
 function Users() {
   return (

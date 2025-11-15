@@ -10,8 +10,8 @@
  * @module apiCoE
  */
 
-import supabase from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
+import supabase from "./supabase";
 
 /**
  * Fetches a paginated, filtered, and searchable list of exam papers across all departments.
@@ -123,7 +123,9 @@ export async function getPapers({ filters = [], search = "", page }) {
 export async function getPaper(id) {
   const { data, error } = await supabase
     .from("exam_papers")
-    .select("*")
+    .select(
+      "*, users:uploaded_by (username), approver_user:approved_by (username)"
+    )
     .eq("id", id)
     .single(); // Only one expected
 

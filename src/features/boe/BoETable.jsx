@@ -1,9 +1,10 @@
-import BoERow from "./BoERow";
-import Table from "../../ui/Table";
-import Menus from "../../ui/Menus";
 import Empty from "../../ui/Empty";
-import Spinner from "../../ui/Spinner";
+import Menus from "../../ui/Menus";
 import Pagination from "../../ui/Pagination";
+import Table from "../../ui/Table";
+
+import BoERow from "./BoERow";
+
 import { useBPapers } from "./useBPapers";
 
 /**
@@ -18,9 +19,6 @@ import { useBPapers } from "./useBPapers";
 function BoETable() {
   // Load papers, loading state, and count from custom BoE data hook
   const { papers = [], isLoading, count } = useBPapers();
-
-  // While waiting for data, show a spinner/loading indicator
-  if (isLoading) return <Spinner />;
 
   // If no papers were found after loading, show an "Empty" notice
   if (!papers.length) return <Empty resourceName="papers" />;
@@ -37,11 +35,17 @@ function BoETable() {
           <div>Status</div>
           <div></div> {/* Empty for row actions menu */}
         </Table.Header>
-        {/* Table.Body maps each paper to a BoERow for detailed row-level logic */}
-        <Table.Body
-          data={papers}
-          render={(paper) => <BoERow key={paper.id} paper={paper} />}
-        />
+
+        {/* Render skeleton or actual rows */}
+        {isLoading ? (
+          <TableSkeleton numRows={papers.length || 5} />
+        ) : (
+          <Table.Body
+            data={papers}
+            render={(paper) => <BoERow key={paper.id} paper={paper} />}
+          />
+        )}
+
         {/* Footer displays pagination using total count from API */}
         <Table.Footer>
           <Pagination count={count} />

@@ -1,8 +1,6 @@
 import { formatInTimeZone } from "date-fns-tz";
-import { useState } from "react";
-import toast from "react-hot-toast";
+
 import {
-  HiArrowDownTray,
   HiOutlineBookOpen,
   HiOutlineBuildingOffice,
   HiOutlineCalendar,
@@ -11,9 +9,7 @@ import {
   HiOutlineUser,
 } from "react-icons/hi2";
 import styled from "styled-components";
-import Button from "../../ui/Button";
 import DataItem from "../../ui/DataItem";
-import { useUploadScrutinizedFiles } from "../boe/useUploadScrutinizedFiles";
 
 const StyledPaperDataBox = styled.section`
   background-color: var(--color-grey-0);
@@ -66,10 +62,6 @@ const Column = styled.div`
   gap: 1.5rem;
 `;
 
-const Section = styled.section`
-  padding: 3.2rem 4rem 1.2rem;
-`;
-
 const Status = styled.span`
   font-family: "Sono";
   font-weight: 500;
@@ -106,7 +98,7 @@ const Status = styled.span`
       : "var(--color-grey-700)"};
 `;
 
-function PaperDataBox({ paper, role }) {
+function PaperDataBox({ paper }) {
   if (!paper) return null;
 
   const {
@@ -117,48 +109,13 @@ function PaperDataBox({ paper, role }) {
     semester,
     academic_year,
     uploaded_by,
+    users,
     created_at,
     updated_at,
     approved_by,
+    approver_user,
     downloaded_at,
-    qp_file_url,
-    scheme_file_url,
   } = paper;
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [scrutinizedQP, setScrutinizedQP] = useState(null);
-  const [scrutinizedSchema, setScrutinizedSchema] = useState(null);
-
-  const { mutate: uploadFiles, isLoading } = useUploadScrutinizedFiles({
-    onSuccess: () => {
-      setIsEditing(false);
-      setScrutinizedQP(null);
-      setScrutinizedSchema(null);
-    },
-  });
-
-  function handleUpload() {
-    if (!scrutinizedQP || !scrutinizedSchema) {
-      toast.error("Please select both QP and Schema files.");
-      return;
-    }
-    uploadFiles({
-      paper,
-      qpFile: scrutinizedQP,
-      schemaFile: scrutinizedSchema,
-    });
-  }
-
-  function toggleEdit() {
-    setIsEditing((prev) => {
-      if (prev) {
-        // Clear files when canceling
-        setScrutinizedQP(null);
-        setScrutinizedSchema(null);
-      }
-      return !prev;
-    });
-  }
 
   return (
     <StyledPaperDataBox>
@@ -184,7 +141,7 @@ function PaperDataBox({ paper, role }) {
           </DataItem>
 
           <DataItem icon={<HiOutlineUser />} label="Uploaded by - ">
-            {uploaded_by}
+            {users?.username} ({uploaded_by})
           </DataItem>
 
           <DataItem icon={<HiOutlineBuildingOffice />} label="Department - ">
@@ -193,7 +150,7 @@ function PaperDataBox({ paper, role }) {
 
           {approved_by && (
             <DataItem icon={<HiOutlineCheckCircle />} label="Approved by - ">
-              {approved_by}
+              {approver_user?.username} ({approved_by})
             </DataItem>
           )}
         </Column>
@@ -235,94 +192,6 @@ function PaperDataBox({ paper, role }) {
           )}
         </Column>
       </GridSection>
-
-      {/* BoE Download + Edit/Cancel Button - Inside the box */}
-      {role === "BoE" && (
-        <Section
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "1rem",
-            paddingTop: 0,
-            paddingBottom: "1rem",
-            width: "100%",
-          }}
-        >
-          {/* Only show download buttons when NOT editing */}
-          {!isEditing && (
-            <>
-              {qp_file_url && (
-                <Button
-                  as="a"
-                  href={qp_file_url}
-                  download
-                  target="_blank"
-                  icon={<HiArrowDownTray />}
-                >
-                  Download QP
-                </Button>
-              )}
-              {scheme_file_url && (
-                <Button
-                  as="a"
-                  href={scheme_file_url}
-                  download
-                  target="_blank"
-                  icon={<HiArrowDownTray />}
-                >
-                  Download Schema
-                </Button>
-              )}
-            </>
-          )}
-
-          {/* Spacer */}
-          <div style={{ flex: 1 }} />
-
-          {/* Edit/Cancel Button - Always visible */}
-          <Button onClick={toggleEdit}>
-            {isEditing ? "Cancel" : "Edit Paper"}
-          </Button>
-        </Section>
-      )}
-
-      {/* BoE file upload section - When editing */}
-      {role === "BoE" && isEditing && (
-        <>
-          <Section>
-            <label>
-              Upload Corrected QP (.doc/.docx):
-              <input
-                type="file"
-                accept=".doc,.docx"
-                onChange={(e) => setScrutinizedQP(e.target.files?.[0] || null)}
-                disabled={isLoading}
-              />
-            </label>
-          </Section>
-          <Section>
-            <label>
-              Upload Corrected Schema (.doc/.docx):
-              <input
-                type="file"
-                accept=".doc,.docx"
-                onChange={(e) =>
-                  setScrutinizedSchema(e.target.files?.[0] || null)
-                }
-                disabled={isLoading}
-              />
-            </label>
-          </Section>
-          <Section>
-            <Button
-              onClick={handleUpload}
-              disabled={isLoading || !scrutinizedQP || !scrutinizedSchema}
-            >
-              {isLoading ? "Uploading..." : "Upload Corrected Files"}
-            </Button>
-          </Section>
-        </>
-      )}
     </StyledPaperDataBox>
   );
 }

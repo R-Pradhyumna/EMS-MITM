@@ -9,8 +9,8 @@
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getSchema } from "../../services/apiDashboard";
 import { useSearchParams } from "react-router-dom";
+import { getSchema } from "../../services/apiDashboard";
 import { PAGE_SIZE } from "../../utils/constants";
 
 /**

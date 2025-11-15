@@ -34,28 +34,6 @@ const Credits = styled.div`
   }
 `;
 
-const UserGuides = styled.div`
-  display: flex;
-  gap: 2.4rem;
-  & a {
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-    color: var(--color-grey-600);
-    font-size: 1.4rem;
-    font-weight: 500;
-    transition: color 0.3s;
-    &:hover {
-      color: var(--color-brand-600);
-    }
-  }
-  & svg {
-    width: 2.2rem;
-    height: 2.2rem;
-    color: var(--color-brand-700);
-  }
-`;
-
 const Logos = styled.div`
   display: flex;
   align-items: center;
@@ -81,7 +59,7 @@ function Footer() {
             href="https://r-pradhyumna.github.io/My-portfolio/"
             target="blank"
           >
-            R Pradhyumna | IS&E
+            R Pradhyumna | 4MH22IS075
           </PortfolioLink>
         </p>
         <p>Copyright &copy; 2025 MITM. All rights reserved.</p>

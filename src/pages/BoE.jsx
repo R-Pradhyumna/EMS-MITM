@@ -1,6 +1,6 @@
-import Row from "../ui/Row";
-import Heading from "../ui/Heading";
 import BoETableOperations from "../features/boe/BoETableOperations";
+import Heading from "../ui/Heading";
+import Row from "../ui/Row";
 import BoETable from "./../features/boe/BoETable";
 
 function BoE() {

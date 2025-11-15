@@ -4,8 +4,8 @@
  * @module apiBoE
  */
 
-import supabase, { supabaseUrl } from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
+import supabase, { supabaseUrl } from "./supabase";
 
 /**
  * Retrieves paginated examination papers for a specific department.
@@ -80,7 +80,7 @@ export async function getPapers({
 export async function getPaper(id) {
   const { data, error } = await supabase
     .from("exam_papers")
-    .select("*")
+    .select("*, users:uploaded_by (username)")
     .eq("id", id)
     .single();
 

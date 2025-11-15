@@ -1,7 +1,7 @@
-import Filter from "../../ui/Filter";
-import TableOperations from "../../ui/TableOperations";
-import SearchBar from "../../ui/Searchbar";
 import { useAcademicYear } from "../../hooks/useAcademicYear";
+import Filter from "../../ui/Filter";
+import SearchBar from "../../ui/Searchbar";
+import TableOperations from "../../ui/TableOperations";
 
 /**
  * BoETableOperations

@@ -84,7 +84,6 @@ function PaperRow({ paper }) {
     subject_name,
     semester,
     status,
-    // ...other fields if any
   } = paper;
 
   return (

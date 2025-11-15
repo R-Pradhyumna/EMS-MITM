@@ -79,7 +79,7 @@ function BPaperDetail() {
   if (isLoading) return <Spinner />;
 
   // If "paper" is not found (could be a 404), show fallback UI
-  if (!paper) return <div>No paper data</div>;
+  if (!paper) return <Empty resourceName="papers" />;
 
   // Pull out status and id for use in buttons, headings, actions
   const { status, id: paperId } = paper;

@@ -3,6 +3,9 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { lazy, Suspense } from "react";
 import { Toaster } from "react-hot-toast";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import Spinner from "./ui/Spinner";
+
+import { DarkModeProvider } from "./context/DarkModeContext";
 
 const GlobalStyles = lazy(() => import("./styles/GlobalStyles"));
 const ProtectedRoute = lazy(() => import("./ui/ProtectedRoute"));
@@ -11,6 +14,7 @@ const HomePage = lazy(() => import("./pages/HomePage"));
 const Faculty = lazy(() => import("./pages/Faculty"));
 const CoE = lazy(() => import("./pages/CoE"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
+const ExamControl = lazy(() => import("./pages/ExamControl"));
 const BoE = lazy(() => import("./pages/BoE"));
 const Principal = lazy(() => import("./pages/Principal"));
 const Paper = lazy(() => import("./pages/Paper"));
@@ -19,9 +23,6 @@ const Users = lazy(() => import("./pages/Users"));
 const Account = lazy(() => import("./pages/Account"));
 const Login = lazy(() => import("./pages/Login"));
 const PageNotFound = lazy(() => import("./pages/PageNotFound"));
-
-import { DarkModeProvider } from "./context/DarkModeContext";
-import Spinner from "./ui/Spinner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -76,6 +77,15 @@ function App() {
                   element={
                     <ProtectedRoute allowedRoles={["CoE"]}>
                       <Dashboard />
+                    </ProtectedRoute>
+                  }
+                />
+
+                <Route
+                  path="control"
+                  element={
+                    <ProtectedRoute allowedRoles={["CoE"]}>
+                      <ExamControl />
                     </ProtectedRoute>
                   }
                 />

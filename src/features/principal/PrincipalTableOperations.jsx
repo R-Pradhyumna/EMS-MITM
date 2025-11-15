@@ -1,8 +1,8 @@
-import Filter from "../../ui/Filter";
-import TableOperations from "../../ui/TableOperations";
-import SearchBar from "../../ui/Searchbar";
-import { useDepartments } from "../../hooks/useDepartments";
 import { useAcademicYear } from "../../hooks/useAcademicYear";
+import { useDepartments } from "../../hooks/useDepartments";
+import Filter from "../../ui/Filter";
+import SearchBar from "../../ui/Searchbar";
+import TableOperations from "../../ui/TableOperations";
 /**
  * PrincipalTableOperations
  * -------------------------

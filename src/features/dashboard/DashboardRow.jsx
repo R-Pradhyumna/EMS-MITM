@@ -1,6 +1,6 @@
 import styled from "styled-components";
-import Table from "../../ui/Table";
 import Button from "../../ui/Button";
+import Table from "../../ui/Table";
 
 const SubCode = styled.div`
   font-size: 1.6rem;

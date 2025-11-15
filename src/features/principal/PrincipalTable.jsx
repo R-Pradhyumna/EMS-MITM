@@ -1,14 +1,13 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 
 import Pagination from "../../ui/Pagination";
-import Spinner from "../../ui/Spinner";
 import Table from "../../ui/Table";
 import Noexam from "./../../ui/Noexam";
 import PrincipalRow from "./PrincipalRow";
 
+import { PAPER_SLOTS } from "../../utils/constants";
 import { useDownloadPaper } from "./useDownloadPaper";
 import { usePPapers } from "./usePPapers";
-import { PAPER_SLOTS } from "../../utils/constants";
 
 /**
  * PrincipalTable
@@ -89,9 +88,6 @@ function PrincipalTable() {
     // eslint-disable-next-line
   }, [rows]);
 
-  // Show a loading spinner while fetching subject-paper data from API/hook
-  if (isLoading) return <Spinner />;
-
   // Show a "no exam papers found" state if there are no subject-paper rows to display
   if (!rows.length) return <Noexam />;
 
@@ -123,22 +119,28 @@ function PrincipalTable() {
           <div key={idx}>Paper-{idx + 1}</div>
         ))}
       </Table.Header>
-      <Table.Body
-        data={rows}
-        render={(row, idx) => (
-          <PrincipalRow
-            key={idx} // Stable row key
-            row={row} // Data for this subject and its papers
-            rowIdx={idx}
-            PAPER_SLOTS={PAPER_SLOTS}
-            onDownload={handleDownload} // Download button callback
-            // 'downloaded' is true if this subject's code is in the UI-locked set: disables ALL buttons for subject in current session/tab
-            downloaded={downloadedSubjectCodes.has(row.subject_code)}
-            // Only show spinner/loading for the row currently being downloaded
-            isLoading={currentDownloading === idx && isDownloading}
-          />
-        )}
-      />
+
+      {isLoading ? (
+        <TableSkeleton numRows={papers.length || 5} />
+      ) : (
+        <Table.Body
+          data={rows}
+          render={(row, idx) => (
+            <PrincipalRow
+              key={idx} // Stable row key
+              row={row} // Data for this subject and its papers
+              rowIdx={idx}
+              PAPER_SLOTS={PAPER_SLOTS}
+              onDownload={handleDownload} // Download button callback
+              // 'downloaded' is true if this subject's code is in the UI-locked set: disables ALL buttons for subject in current session/tab
+              downloaded={downloadedSubjectCodes.has(row.subject_code)}
+              // Only show spinner/loading for the row currently being downloaded
+              isLoading={currentDownloading === idx && isDownloading}
+            />
+          )}
+        />
+      )}
+
       <Table.Footer>
         <Pagination count={count} />
       </Table.Footer>

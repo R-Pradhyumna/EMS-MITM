@@ -8,8 +8,8 @@
  * @module useEditPaper
  */
 
-import toast from "react-hot-toast";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { createEditPapers } from "../../services/apiFaculty";
 
 /**

@@ -9,8 +9,8 @@
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getPapers } from "../../services/apiFaculty";
 import { useSearchParams } from "react-router-dom";
+import { getPapers } from "../../services/apiFaculty";
 import { PAGE_SIZE } from "../../utils/constants";
 import { useUserData } from "./../authentication/useUserData";
 

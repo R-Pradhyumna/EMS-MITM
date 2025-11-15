@@ -1,8 +1,8 @@
 import Empty from "../../ui/Empty";
 import Menus from "../../ui/Menus";
 import Pagination from "../../ui/Pagination";
-import Spinner from "../../ui/Spinner";
 import Table from "../../ui/Table";
+
 import { useGetFaculties } from "../boe/useGetFaculties";
 import { useGetCoE } from "../principal/useGetCoE";
 import { useGetUsers } from "./../coe/useGetUsers";
@@ -30,8 +30,6 @@ function UserTable() {
     isLoading: isDataLoading,
     count,
   } = useGetUsersByRole(role);
-
-  if (isUserLoading || isDataLoading) return <Spinner />;
 
   if (!users.length) return <Empty resourceName="users" />;
 

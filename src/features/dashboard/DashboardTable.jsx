@@ -1,17 +1,15 @@
 import DashboardRow from "./DashboardRow";
-import Table from "../../ui/Table";
-import Menus from "../../ui/Menus";
+
 import Empty from "../../ui/Empty";
-import Spinner from "../../ui/Spinner";
+import Menus from "../../ui/Menus";
 import Pagination from "../../ui/Pagination";
+import Table from "../../ui/Table";
+
 import { useDPapers } from "./useDPapers";
 
 function DashboardTable() {
   // Custom hook loads data, loading state, and total count for pagination
-  const { papers = [], isLoading, count } = useDPapers();
-
-  // Show loading indicator while waiting for API/data
-  if (isLoading) return <Spinner />;
+  const { papers = [], count } = useDPapers();
 
   // Show custom "empty" state if there are no papers returned after loading
   if (!papers.length) return <Empty resourceName="papers" />;

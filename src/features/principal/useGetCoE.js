@@ -10,8 +10,8 @@
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
-import { PAGE_SIZE } from "../../utils/constants";
 import { getCoE } from "../../services/apiPrincipal";
+import { PAGE_SIZE } from "../../utils/constants";
 
 /**
  * Fetches paginated CoE users with smart prefetching for Principal dashboard.

@@ -1,8 +1,8 @@
-import styled from "styled-components";
-import Table from "../../ui/Table";
-import Menus from "../../ui/Menus";
-import { HiEye, HiCheckCircle } from "react-icons/hi2";
+import { HiCheckCircle, HiEye } from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
+import styled from "styled-components";
+import Menus from "../../ui/Menus";
+import Table from "../../ui/Table";
 
 // Styled cell for subject code: large font, bold, gray
 const SubCode = styled.div`

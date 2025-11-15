@@ -1,8 +1,9 @@
-import { useDepartments } from "../../hooks/useDepartments";
-import { useAcademicYear } from "../../hooks/useAcademicYear";
 import Filter from "../../ui/Filter";
 import SearchBar from "../../ui/Searchbar";
 import TableOperations from "../../ui/TableOperations";
+
+import { useAcademicYear } from "../../hooks/useAcademicYear";
+import { useDepartments } from "../../hooks/useDepartments";
 
 /**
  * CoETableOperations

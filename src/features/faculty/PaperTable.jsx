@@ -1,10 +1,11 @@
 import { useSearchParams } from "react-router-dom";
-import Menus from "../../ui/Menus";
-import Table from "../../ui/Table";
-import Spinner from "./../../ui/Spinner";
 import PaperRow from "./PaperRow";
-import Empty from "./../../ui/Empty";
+
+import Menus from "../../ui/Menus";
 import Pagination from "../../ui/Pagination";
+import Table from "../../ui/Table";
+import TableSkeleton from "../../ui/TableSkeleton";
+import Empty from "./../../ui/Empty";
 
 import { useFPapers } from "./useFPapers";
 
@@ -24,9 +25,6 @@ function PaperTable() {
 
   // Allows reading the sort param (or others) from the URL (via React Router)
   const [searchParams] = useSearchParams();
-
-  // Show loading spinner while waiting for API to resolve
-  if (isLoading) return <Spinner />;
 
   // Show a context-aware empty state if there are no papers after loading
   if (!papers || papers.length === 0) return <Empty resourceName="papers" />;
@@ -52,14 +50,17 @@ function PaperTable() {
           <div>Semester</div>
           <div>Status</div>
           <div></div>
-          {/* empty for actions menu column */}
         </Table.Header>
 
-        {/* Table.Body handles mapping each record to a row component */}
-        <Table.Body
-          data={sortedPapers}
-          render={(paper) => <PaperRow paper={paper} key={paper.id} />}
-        />
+        {/* Render skeleton or actual rows */}
+        {isLoading ? (
+          <TableSkeleton numRows={papers.length || 5} />
+        ) : (
+          <Table.Body
+            data={sortedPapers}
+            render={(paper) => <PaperRow paper={paper} key={paper.id} />}
+          />
+        )}
 
         {/* Pagination component in the table footer, using total count */}
         <Table.Footer>

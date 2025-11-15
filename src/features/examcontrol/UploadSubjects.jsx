@@ -1,9 +1,9 @@
 import { useRef, useState } from "react";
 import toast from "react-hot-toast";
+import { uploadSubjectsFile } from "../../services/apiExam";
 import Button from "../../ui/Button";
-import { uploadSubjectsFile } from "../../services/apiDashboard";
 
-export function UploadSubjects() {
+function UploadSubjects() {
   const fileInputRef = useRef();
   const [isUploading, setIsUploading] = useState(false);
 
@@ -76,3 +76,5 @@ export function UploadSubjects() {
     </>
   );
 }
+
+export default UploadSubjects;

@@ -9,8 +9,8 @@
  */
 
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { getFaculties } from "../../services/apiBoE";
 import { useSearchParams } from "react-router-dom";
+import { getFaculties } from "../../services/apiBoE";
 import { PAGE_SIZE } from "../../utils/constants";
 import { useUserData } from "../authentication/useUserData";
 

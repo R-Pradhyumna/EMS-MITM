@@ -11,9 +11,8 @@
  * @module apiDashboard
  */
 
-import supabase from "./supabase";
 import { PAGE_SIZE } from "../utils/constants";
-import Papa from "papaparse";
+import supabase from "./supabase";
 
 /**
  * Retrieves paginated list of Scheme of Valuation papers that have been downloaded.
@@ -78,294 +77,77 @@ export async function getSchema({ page }) {
 }
 
 /**
- * Uploads and imports subjects from a CSV file with comprehensive validation.
- * Automatically maps department_name to department_id via database trigger.
- * Validates all required fields and provides detailed error reporting for invalid rows.
+ * Retrieves dashboard statistics for overview cards (OPTIMIZED).
+ *
+ * Fetches all exam papers in a single query and computes statistics
+ * on the client side. Much more efficient than multiple queries.
  *
  * @async
- * @param {File} file - CSV file object from user file input
- * @returns {Promise<Object>} Import results with processing statistics
- * @returns {*} returns.data - Database insert response data
- * @returns {number} returns.processed - Count of successfully validated and imported rows
- * @returns {number} returns.skipped - Count of invalid rows that were not imported
- * @returns {number} returns.total - Total number of rows parsed from CSV
- * @throws {Error} If no valid rows found or CSV parsing/database operation fails
- *
- * @description
- * CSV Format Requirements (all fields required):
- * - subject_code (string): Unique subject identifier (e.g., "M23BCS501")
- * - subject_name (string): Full name of the subject (e.g., "Theory of Computation")
- * - semester (string): Semester number (e.g., "1", "2", "3", etc.)
- * - academic_year (number): Academic year (e.g., 2023, 2024)
- * - subject_type (string, optional): Type/category of subject (defaults to "departmental")
- * - department_name (string): Department name (e.g., "ISE", "CSE")
- *   → Trigger automatically maps this to department_id; ensure department exists in database
- *
- * CSV Parsing Notes:
- * - Column headers are automatically trimmed to handle whitespace
- * - Empty lines are skipped
- * - Non-numeric academic_year values cause row to be rejected
- * - Missing or empty required fields cause row to be rejected
- * - Invalid rows are logged to console for debugging
- *
- * @example
- * // Basic file upload
- * const fileInput = document.getElementById('subjectsFile');
- * const result = await uploadSubjectsFile(fileInput.files[0]);
- * console.log(`Imported ${result.processed}/${result.total} subjects`);
- *
- * @example
- * // With error handling
- * try {
- *   const result = await uploadSubjectsFile(file);
- *   if (result.skipped > 0) {
- *     console.warn(`⚠️ Warning: ${result.skipped} rows were invalid and skipped`);
- *   }
- *   if (result.processed > 0) {
- *     console.log(`✓ Successfully imported ${result.processed} subjects`);
- *   }
- * } catch (error) {
- *   console.error('Import failed:', error.message);
- * }
+ * @returns {Promise<Object>} Dashboard statistics
+ * @returns {number} returns.totalPapers - Total count of all exam papers
+ * @returns {number} returns.pendingReview - Papers waiting for CoE/BoE review
+ * @returns {number} returns.approved - Papers approved by BoE
+ * @returns {number} returns.downloaded - Papers downloaded by Principal
+ * @returns {number} returns.weeklyGrowth - Papers submitted in last 7 days
+ * @throws {Error} If database query fails
  */
-export async function uploadSubjectsFile(file) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => header.trim(), // ✅ Trim header whitespace
-      complete: async function (results) {
-        const subjects = results.data;
+export async function getDashboardStats() {
+  try {
+    // Single query - fetch all papers with minimal fields
+    const { data: papers, error } = await supabase
+      .from("exam_papers")
+      .select("status, is_downloaded, created_at");
 
-        const requiredFields = [
-          "subject_code",
-          "subject_name",
-          "semester",
-          "academic_year",
-          "department_name",
-        ];
+    if (error) throw error;
 
-        // Debug: Log first row to see what's being parsed
-        console.log("First row:", subjects[0]);
-        console.log("Available columns:", Object.keys(subjects[0] || {}));
+    // Calculate date threshold for weekly growth
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-        const validRows = subjects
-          .filter((row) => {
-            const isValid =
-              requiredFields.every((field) => {
-                const value = row[field];
-                return (
-                  value && typeof value === "string" && value.trim() !== ""
-                );
-              }) && !isNaN(Number(row.academic_year));
+    // Compute statistics on client side (single pass)
+    const stats = papers.reduce(
+      (acc, paper) => {
+        // Total papers
+        acc.totalPapers++;
 
-            if (!isValid) {
-              console.warn("Invalid row:", row);
-            }
-
-            return isValid;
-          })
-          .map((row) => ({
-            subject_code: row.subject_code.trim(),
-            subject_name: row.subject_name.trim(),
-            semester: row.semester.trim(),
-            academic_year: Number(row.academic_year),
-            subject_type: row.subject_type?.trim() || "departmental",
-            department_name: row.department_name.trim(),
-          }));
-
-        if (validRows.length === 0) {
-          reject(
-            new Error(
-              `No valid rows found. Required fields: ${requiredFields.join(
-                ", "
-              )}\n` + `First row parsed as: ${JSON.stringify(subjects[0])}`
-            )
-          );
-          return;
+        // Pending review (Submitted)
+        if (paper.status === "Submitted") {
+          acc.pendingReview++;
         }
 
-        const skippedCount = subjects.length - validRows.length;
-        if (skippedCount > 0) {
-          console.warn(
-            `Skipped ${skippedCount} invalid rows out of ${subjects.length} total rows`
-          );
+        // Approved (BoE-approved)
+        if (
+          paper.status === "BoE-approved" ||
+          paper.status === "CoE-approved"
+        ) {
+          acc.approved++;
         }
 
-        const { data, error } = await supabase
-          .from("subjects")
-          .insert(validRows); // ✅ Simple insert, no conflict handling
-
-        if (error) {
-          reject(error);
-        } else {
-          resolve({
-            data,
-            processed: validRows.length,
-            skipped: skippedCount,
-            total: subjects.length,
-          });
+        // Downloaded
+        if (paper.is_downloaded === true) {
+          acc.downloaded++;
         }
+
+        // Weekly growth (created in last 7 days)
+        const paperDate = new Date(paper.created_at);
+        if (paperDate >= sevenDaysAgo) {
+          acc.weeklyGrowth++;
+        }
+
+        return acc;
       },
-      error: (err) => reject(err),
-    });
-  });
-}
+      {
+        totalPapers: 0,
+        pendingReview: 0,
+        approved: 0,
+        downloaded: 0,
+        weeklyGrowth: 0,
+      }
+    );
 
-/**
- * Uploads and imports exam schedules from a CSV file with comprehensive validation.
- * Automatically maps department_name to department_id via database trigger.
- * Handles flexible date formats (DD-MM-YYYY and YYYY-MM-DD) with automatic conversion.
- *
- * @async
- * @param {File} file - CSV file object from user file input (text/csv or .csv extension)
- * @returns {Promise<Object>} Import results with processing statistics
- * @returns {*} returns.data - Database insert response data
- * @returns {number} returns.processed - Count of successfully validated and imported exam rows
- * @returns {number} returns.skipped - Count of invalid rows that were not imported
- * @returns {number} returns.total - Total number of rows parsed from CSV
- * @throws {Error} If no valid rows found, CSV parsing fails, or database operation fails
- *
- * @description
- * CSV Format Requirements (all fields required):
- * - exam_name (string): Name/title of the examination (e.g., "ISE Sem 5 - TOC")
- * - semester (string): Semester number (e.g., "5", "7")
- * - exam_datetime (string): Date of exam in DD-MM-YYYY or YYYY-MM-DD format
- *   → Automatically converted to YYYY-MM-DD before database insertion
- * - academic_year (number): Academic year (e.g., 2023, 2024, 2025)
- * - department_name (string): Department name (e.g., "ISE", "CSE")
- *   → Trigger automatically maps this to department_id; ensure department exists
- * - subject_name (string, optional): Name of subject being examined
- *
- * Date Format Handling:
- * - Both DD-MM-YYYY and YYYY-MM-DD formats are accepted
- * - Excel-formatted dates (DD-MM-YYYY) are automatically converted
- * - Date validation occurs before database insertion
- * - Invalid date formats cause row to be rejected
- *
- * CSV Parsing Notes:
- * - Column headers are automatically trimmed to handle whitespace
- * - Empty lines are skipped
- * - Non-numeric semester and academic_year values cause row rejection
- * - Missing or empty required fields cause row rejection
- * - Invalid rows are skipped silently and logged to console for debugging
- *
- * @example
- * // Basic exam schedule import
- * const fileInput = document.getElementById('examScheduleFile');
- * const result = await uploadExamScheduleFile(fileInput.files[0]);
- * console.log(`Imported ${result.processed}/${result.total} exam schedules`);
- *
- * @example
- * // With comprehensive error handling and feedback
- * try {
- *   const result = await uploadExamScheduleFile(file);
- *   if (result.processed === 0) {
- *     alert('No valid exam records found in CSV');
- *   } else {
- *     console.log(`✓ Successfully imported ${result.processed} exams`);
- *     if (result.skipped > 0) {
- *       console.warn(`⚠️ Skipped ${result.skipped} invalid rows`);
- *     }
- *   }
- * } catch (error) {
- *   if (error.message.includes('No valid exam rows')) {
- *     alert('CSV file format is invalid. Please check:\n' +
- *           '- All required columns present\n' +
- *           '- Date format is DD-MM-YYYY or YYYY-MM-DD\n' +
- *           '- No empty cells in required fields');
- *   } else {
- *     console.error('Exam import failed:', error.message);
- *   }
- * }
- */
-export async function uploadExamScheduleFile(file) {
-  return new Promise((resolve, reject) => {
-    Papa.parse(file, {
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => header.trim(),
-      complete: async function (results) {
-        const exams = results.data;
-
-        const requiredFields = [
-          "exam_name",
-          "semester",
-          "exam_datetime",
-          "academic_year",
-          "department_name",
-        ];
-
-        // ✅ Accept BOTH formats: YYYY-MM-DD and DD-MM-YYYY
-        const dateRegex = /^(\d{4}-\d{2}-\d{2}|\d{2}-\d{2}-\d{4})$/;
-
-        console.log("Total rows parsed:", exams.length);
-        console.log("First row:", exams[0]);
-
-        const validRows = exams
-          .filter((row) => {
-            return (
-              requiredFields.every((field) => {
-                const value = row[field];
-                return (
-                  value && typeof value === "string" && value.trim() !== ""
-                );
-              }) &&
-              dateRegex.test(row.exam_datetime.trim()) &&
-              !isNaN(Number(row.academic_year)) &&
-              !isNaN(Number(row.semester))
-            );
-          })
-          .map((row) => {
-            let dateStr = row.exam_datetime.trim();
-
-            // ✅ Convert DD-MM-YYYY to YYYY-MM-DD
-            if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
-              const [day, month, year] = dateStr.split("-");
-              dateStr = `${year}-${month}-${day}`;
-            }
-
-            return {
-              exam_name: row.exam_name.trim(),
-              semester: row.semester.trim(),
-              exam_datetime: dateStr, // ✅ Now YYYY-MM-DD
-              academic_year: Number(row.academic_year),
-              department_name: row.department_name.trim(),
-              subject_name: row.subject_name?.trim() || null,
-            };
-          });
-
-        if (validRows.length === 0) {
-          reject(
-            new Error(
-              "No valid exam rows found. Date format can be YYYY-MM-DD or DD-MM-YYYY"
-            )
-          );
-          return;
-        }
-
-        const skippedCount = exams.length - validRows.length;
-        if (skippedCount > 0) {
-          console.warn(`Skipped ${skippedCount} invalid rows`);
-        }
-
-        const { data, error } = await supabase
-          .from("exams")
-          .insert(validRows)
-          .select();
-
-        if (error) {
-          reject(error);
-        } else {
-          resolve({
-            data,
-            processed: validRows.length,
-            skipped: skippedCount,
-            total: exams.length,
-          });
-        }
-      },
-      error: (err) => reject(err),
-    });
-  });
+    return stats;
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    throw new Error("Failed to load dashboard statistics");
+  }
 }

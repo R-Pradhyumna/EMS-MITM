@@ -1,8 +1,8 @@
+import { HiCheckCircle, HiEye, HiLockClosed } from "react-icons/hi2";
+import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Table from "../../ui/Table";
 import Menus from "./../../ui/Menus";
-import { HiEye, HiCheckCircle, HiLockClosed } from "react-icons/hi2";
-import { useNavigate } from "react-router-dom";
 
 // --- Styled Components ---
 // Styled cell for Subject Code, large & bold
