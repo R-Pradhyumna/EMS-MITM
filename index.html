@@ -2,8 +2,12 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>
+      ExamSuite | Empowering Institutions with Centralized Exam Management
+    </title>
+
     <meta
       name="description"
       content="ExamSuite: Empowering Institutions with Centralized Exam Management. Manage exams efficiently, securely, and collaboratively on one platform."
@@ -12,111 +16,64 @@
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://yourdomain.com/" />
 
-    <!-- Preload and load local fonts -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+
+    <!-- Preload Poppins fonts -->
     <link
       rel="preload"
-      href="/fonts/Poppins-Regular.woff2"
+      href="/fonts/poppins-v24-latin-500.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/Poppins-Medium.woff2"
+      href="/fonts/poppins-v24-latin-600.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
     <link
       rel="preload"
-      href="/fonts/Poppins-SemiBold.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/Poppins-Bold.woff2"
+      href="/fonts/poppins-v24-latin-700.woff2"
       as="font"
       type="font/woff2"
       crossorigin
     />
 
+    <!-- Load Sono font via Google Fonts CDN (if available) -->
     <link
-      rel="preload"
-      href="/fonts/Sono-Regular.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/Sono-Medium.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
-    />
-    <link
-      rel="preload"
-      href="/fonts/Sono-SemiBold.woff2"
-      as="font"
-      type="font/woff2"
-      crossorigin
+      href="https://fonts.googleapis.com/css2?family=Sono&display=swap"
+      rel="stylesheet"
     />
 
     <style>
       @font-face {
         font-family: "Poppins";
-        src: url("/fonts/Poppins-Regular.woff2") format("woff2");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: "Poppins";
-        src: url("/fonts/Poppins-Medium.woff2") format("woff2");
+        src: url("/fonts/poppins-v24-latin-500.woff2") format("woff2");
         font-weight: 500;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: "Poppins";
-        src: url("/fonts/Poppins-SemiBold.woff2") format("woff2");
+        src: url("/fonts/poppins-v24-latin-600.woff2") format("woff2");
         font-weight: 600;
         font-style: normal;
         font-display: swap;
       }
       @font-face {
         font-family: "Poppins";
-        src: url("/fonts/Poppins-Bold.woff2") format("woff2");
+        src: url("/fonts/poppins-v24-latin-700.woff2") format("woff2");
         font-weight: 700;
         font-style: normal;
         font-display: swap;
       }
-      @font-face {
-        font-family: "Sono";
-        src: url("/fonts/Sono-Regular.woff2") format("woff2");
-        font-weight: 400;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: "Sono";
-        src: url("/fonts/Sono-Medium.woff2") format("woff2");
-        font-weight: 500;
-        font-style: normal;
-        font-display: swap;
-      }
-      @font-face {
-        font-family: "Sono";
-        src: url("/fonts/Sono-SemiBold.woff2") format("woff2");
-        font-weight: 600;
-        font-style: normal;
-        font-display: swap;
+
+      body {
+        font-family: "Sono", "Poppins", Arial, sans-serif; /* Use Sono from Google Fonts with Poppins fallback */
       }
     </style>
-
-    <title>ExamSuite | MITM</title>
   </head>
   <body>
     <div id="root"></div>

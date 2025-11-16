@@ -166,17 +166,41 @@ export async function logout() {
  *   fullName: 'Dr. Jane Doe'
  * });
  */
-export async function updateCurrentUser({ password, fullName }) {
-  let updateData;
-  if (password) updateData = { password };
-  if (fullName) updateData = { data: { fullName } };
+export async function updateCurrentUser({
+  password,
+  fullName,
+  employee_id,
+  department_name,
+  role,
+  email,
+}) {
+  if (password) {
+    const { data, error } = await supabase.auth.updateUser({ password });
+    if (error) throw error;
+    return data;
+  }
 
-  const { data: updatedData, error } = await supabase.auth.updateUser(
-    updateData
-  );
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError) throw new Error(userError.message);
 
-  if (error) throw new Error(error.message);
-  return updatedData;
+  const authUserId = userData.user.id;
+
+  // Update the custom users table directly
+  const { data: updatedProfileData, error: profileError } = await supabase
+    .from("users")
+    .update({
+      username: fullName,
+      employee_id: employee_id,
+      department_name: department_name,
+      role: role,
+      email: email,
+    })
+    .eq("auth_user_id", authUserId)
+    .select();
+
+  if (profileError) throw new Error(profileError.message);
+
+  return updatedProfileData;
 }
 
 /**

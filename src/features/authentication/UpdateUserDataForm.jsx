@@ -15,8 +15,6 @@ function UpdateUserDataForm() {
   const { employee_id, username, department_name, role } = useUserData();
   const { updateUser, isUpdating } = useUpdateUser();
 
-  console.log(username, employee_id, department_name);
-
   // Controlled state for all editable fields
   const [name, setName] = useState(username || "");
   const [empId, setEmpId] = useState(employee_id || "");
@@ -29,9 +27,9 @@ function UpdateUserDataForm() {
       { fullName: name, employee_id: empId, department_name: deptName },
       {
         onSuccess: () => {
-          setName(fullName || "");
-          setEmpId(employee_id || "");
-          setDeptName(department_name || "");
+          setName(name);
+          setEmpId(empId);
+          setDeptName(deptName);
         },
       }
     );
