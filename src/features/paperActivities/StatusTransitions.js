@@ -73,12 +73,12 @@ const StatusTransitions = {
       label: "Approve",
       update: (paper) => ({ status: "CoE-approved" }),
       displayText: (paper) =>
-        `Uploaded by: ${paper.users?.username || "Unknown"} (ID: ${
+        `Uploaded by: ${paper.users?.username || paper.uploaded_by} (ID: ${
           paper.uploaded_by
         })`,
       confirm: (paper) =>
         `I confirm that ${
-          paper.users?.username || "Unknown"
+          paper.users?.username || paper.uploaded_by
         } has reviewed and approved paper #${paper.id}`,
     },
   },
@@ -87,12 +87,12 @@ const StatusTransitions = {
       label: "Approve",
       update: (paper) => ({ status: "BoE-approved" }),
       displayText: (paper) =>
-        `Uploaded by: ${paper.users?.username || "Unknown"} (ID: ${
+        `Uploaded by: ${paper.users?.username || paper.uploaded_by} (ID: ${
           paper.uploaded_by
         })`,
       confirm: (paper) =>
         `I confirm that ${
-          paper.users?.username || "Unknown"
+          paper.users?.username || paper.uploaded_by
         } has reviewed and approved paper #${paper.id}`,
     },
   },
@@ -101,12 +101,12 @@ const StatusTransitions = {
       label: "Lock",
       update: (paper) => ({ status: "Locked", is_locked: true }),
       displayText: (paper) =>
-        `Uploaded by: ${paper.uploader_name || "Unknown"} (ID: ${
+        `Uploaded by: ${paper.uploader_name || paper.uploaded_by} (ID: ${
           paper.uploaded_by
         })`,
       confirm: (paper) =>
         `I confirm that ${
-          paper.approver_user?.username || "Unknown"
+          paper.approver_user?.username || paper.approver_id
         } has reviewed and approved paper #${paper.id}`,
     },
   },

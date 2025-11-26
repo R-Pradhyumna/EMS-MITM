@@ -1,8 +1,8 @@
 import { useState } from "react";
 import styled from "styled-components";
 
-import PaperDataBox from "../coe/PaperDataBox";
 import BPaperDataBox from "../boe/BPaperDataBox";
+import PaperDataBox from "../coe/PaperDataBox";
 import StatusTransitions from "./StatusTransitions";
 
 import Button from "../../ui/Button";
@@ -11,6 +11,7 @@ import ButtonText from "../../ui/ButtonText";
 import Checkbox from "../../ui/Checkbox";
 import Heading from "../../ui/Heading";
 import Row from "../../ui/Row";
+import Empty from "./../../ui/Empty";
 
 import { useMoveBack } from "../../hooks/useMoveBack";
 import { useApproval } from "./useApproval";
@@ -74,7 +75,7 @@ function ApprovePaper({ role, usePaperHook }) {
       {/* Paper details/info card */}
       <PaperComponent paper={paper} role={role} />
 
-      {/* --- Acation/Confirmation Section: Only if transition is valid for current status/role --- */}
+      {/* --- Action/Confirmation Section: Only if transition is valid for current status/role --- */}
       {transition && transition.confirm && (
         <Box>
           <Checkbox
