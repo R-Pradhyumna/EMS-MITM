@@ -7,65 +7,72 @@ import CreatePaperForm from "./CreatePaperForm";
 
 // --- Styled Components for Table Cells ---
 
-// Large, strong subject code display
 const SubCode = styled.div`
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-align: left;
-  color: var(--color-grey-600);
-  font-family: "Sono";
-`;
-
-// Subject name, bold for emphasis
-const SubName = styled.div`
-  font-family: "Sono";
-  font-weight: 600;
-  text-align: left;
-`;
-
-// Semester, a little more colorful
-const Semester = styled.div`
-  font-family: "Sono";
+  font-size: 1.4rem;
   font-weight: 500;
-  color: var(--color-green-700);
-  text-align: left;
+  color: var(--color-grey-700);
+  display: flex;
+  align-items: center;
+`;
+
+const SubName = styled.div`
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: var(--color-grey-800);
+  display: flex;
+  align-items: center;
+`;
+
+const Semester = styled.div`
+  font-size: 1.4rem;
+  color: var(--color-grey-600);
+  display: flex;
+  align-items: center;
+`;
+
+const StatusWrapper = styled.div`
+  display: flex;
+  align-items: center;
 `;
 
 // Status badge: color & background depend on status value
-const Status = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
-  padding: 0.4rem 1.2rem;
-  border-radius: var(--border-radius-sm);
-  text-align: center;
+const Status = styled.span`
+  display: inline-flex; /* ← Changed from default */
+  align-items: center;
+  justify-content: center;
   width: fit-content;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.4rem 1.2rem;
+  border-radius: 100px;
   white-space: nowrap;
 
-  background-color: ${({ status }) =>
-    status === "Submitted"
-      ? "var(--color-green-100)"
-      : status === "CoE-approved"
-      ? "var(--color-yellow-100)"
-      : status === "BoE-approved"
-      ? "var(--color-indigo-100)"
-      : status === "Locked"
-      ? "var(--color-grey-300)"
-      : status === "Downloaded"
-      ? "var(--color-blue-100)"
-      : "var(--color-grey-100)"};
-
-  color: ${({ status }) =>
-    status === "Submitted"
+  color: ${(props) =>
+    props.status === "Submitted"
+      ? "var(--color-green-700)"
+      : props.status === "CoE-approved"
       ? "var(--color-yellow-700)"
-      : status === "CoE-approved"
-      ? "var(--color-yellow-700)"
-      : status === "BoE-approved"
-      ? "var(--color-indigo-700)"
-      : status === "Locked"
-      ? "var(--color-grey-800)"
-      : status === "Downloaded"
+      : props.status === "BoE-approved"
       ? "var(--color-blue-700)"
+      : props.status === "Locked"
+      ? "var(--color-red-700)"
+      : props.status === "Downloaded"
+      ? "var(--color-indigo-700)"
       : "var(--color-grey-700)"};
+
+  background-color: ${(props) =>
+    props.status === "Submitted"
+      ? "var(--color-green-100)"
+      : props.status === "CoE-approved"
+      ? "var(--color-yellow-100)"
+      : props.status === "BoE-approved"
+      ? "var(--color-blue-100)"
+      : props.status === "Locked"
+      ? "var(--color-red-100)"
+      : props.status === "Downloaded"
+      ? "var(--color-indigo-100)"
+      : "var(--color-grey-200)"};
 `;
 
 // === Main Table Row Component ===
@@ -98,10 +105,12 @@ function PaperRow({ paper }) {
       <SubName>{subject_name}</SubName>
 
       {/* 4th Column: Semester */}
-      <Semester>{semester}</Semester>
+      <Semester>Sem-{semester}</Semester>
 
       {/* 5th Column: Status badge */}
-      <Status status={status}>{status}</Status>
+      <StatusWrapper>
+        <Status status={status}>{status}</Status>
+      </StatusWrapper>
 
       {/* Actions column: Edit menu, only when status is "Submitted" */}
       <div>

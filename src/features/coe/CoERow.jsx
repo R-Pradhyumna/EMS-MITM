@@ -1,69 +1,84 @@
-import { HiCheckCircle, HiEye, HiLockClosed } from "react-icons/hi2";
+import {
+  HiArrowUturnLeft,
+  HiCheckCircle,
+  HiEye,
+  HiLockClosed,
+} from "react-icons/hi2";
 import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import Table from "../../ui/Table";
 import Menus from "./../../ui/Menus";
+import useRollbackPaper from "./useRollbackPaper";
 
 // --- Styled Components ---
-// Styled cell for Subject Code, large & bold
 const SubCode = styled.div`
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-align: left;
-  color: var(--color-grey-600);
-  font-family: "Sono";
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--color-grey-700);
+  display: flex;
+  align-items: center;
 `;
 
-// Styled cell for Subject Name, bold
 const SubName = styled.div`
-  font-family: "Sono";
+  font-size: 1.4rem;
   font-weight: 600;
-  text-align: left;
+  color: var(--color-grey-800);
+  display: flex;
+  align-items: center;
 `;
 
-// Styled cell for Semester, with accent color
 const Semester = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
-  color: var(--color-green-700);
-  text-align: left;
+  font-size: 1.4rem;
+  color: var(--color-grey-600); /* Changed from green */
+  display: flex;
+  align-items: center;
+  /* Removed justify-content: center - left align like others */
+  /* Removed text-align: center */
 `;
 
-// Styled cell for the Status badge, color-coded by status prop
-const Status = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
-  padding: 0.4rem 1.2rem;
-  border-radius: var(--border-radius-sm);
-  text-align: left;
+// Wrap Status in a container div
+const StatusWrapper = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const Status = styled.span`
+  display: inline-flex; /* ← Changed from default */
+  align-items: center;
+  justify-content: center;
   width: fit-content;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.4rem 1.2rem;
+  border-radius: 100px;
   white-space: nowrap;
 
-  background-color: ${({ status }) =>
-    status === "Submitted"
-      ? "var(--color-green-100)"
-      : status === "CoE-approved"
-      ? "var(--color-yellow-100)"
-      : status === "BoE-approved"
-      ? "var(--color-indigo-100)"
-      : status === "Locked"
-      ? "var(--color-grey-300)"
-      : status === "Downloaded"
-      ? "var(--color-blue-100)"
-      : "var(--color-grey-100)"};
-
-  color: ${({ status }) =>
-    status === "Submitted"
+  color: ${(props) =>
+    props.status === "Submitted"
+      ? "var(--color-green-700)"
+      : props.status === "CoE-approved"
       ? "var(--color-yellow-700)"
-      : status === "CoE-approved"
-      ? "var(--color-yellow-700)"
-      : status === "BoE-approved"
-      ? "var(--color-indigo-700)"
-      : status === "Locked"
-      ? "var(--color-grey-800)"
-      : status === "Downloaded"
+      : props.status === "BoE-approved"
       ? "var(--color-blue-700)"
+      : props.status === "Locked"
+      ? "var(--color-red-700)"
+      : props.status === "Downloaded"
+      ? "var(--color-indigo-700)"
       : "var(--color-grey-700)"};
+
+  background-color: ${(props) =>
+    props.status === "Submitted"
+      ? "var(--color-green-100)"
+      : props.status === "CoE-approved"
+      ? "var(--color-yellow-100)"
+      : props.status === "BoE-approved"
+      ? "var(--color-blue-100)"
+      : props.status === "Locked"
+      ? "var(--color-red-100)"
+      : props.status === "Downloaded"
+      ? "var(--color-indigo-100)"
+      : "var(--color-grey-200)"};
 `;
 
 // === Main Row Component for CoE Table ===
@@ -90,6 +105,12 @@ function CoERow({
   },
 }) {
   const navigate = useNavigate(); // React Router navigation function
+  const { rollbackPaper, isPending } = useRollbackPaper();
+
+  const handleRollback = (targetStatus) => {
+    if (!confirm(`Rollback paper from ${status} → ${targetStatus}?`)) return;
+    rollbackPaper({ paperId, targetStatus });
+  };
 
   return (
     <Table.Row>
@@ -100,9 +121,11 @@ function CoERow({
       {/* Subject Name cell */}
       <SubName>{subject_name}</SubName>
       {/* Semester cell */}
-      <Semester>{semester}</Semester>
+      <Semester>Sem-{semester}</Semester>
       {/* Colorful status badge */}
-      <Status status={status}>{status}</Status>
+      <StatusWrapper>
+        <Status status={status}>{status}</Status>
+      </StatusWrapper>
 
       {/* Row actions: 3-dot menu with conditional items */}
       <Menus.Menu>
@@ -127,6 +150,35 @@ function CoERow({
               onClick={() => navigate(`/approve/${paperId}`)}
             >
               Approve
+            </Menus.Button>
+          )}
+
+          {/* NEW: Rollback buttons - CoE only context */}
+          {status === "BoE-approved" && (
+            <Menus.Button
+              icon={
+                <HiArrowUturnLeft
+                  style={{ color: "var(--color-orange-700)" }}
+                />
+              }
+              onClick={() => handleRollback("CoE-approved")}
+              disabled={isPending}
+            >
+              Rollback to CoE-approved
+            </Menus.Button>
+          )}
+
+          {status === "CoE-approved" && (
+            <Menus.Button
+              icon={
+                <HiArrowUturnLeft
+                  style={{ color: "var(--color-orange-700)" }}
+                />
+              }
+              onClick={() => handleRollback("Submitted")}
+              disabled={isPending}
+            >
+              Rollback to Submitted
             </Menus.Button>
           )}
 
