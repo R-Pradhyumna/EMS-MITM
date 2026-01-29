@@ -181,6 +181,45 @@ export async function approvePaper(id, obj) {
   return data;
 }
 
+export async function rollbackPaperStatus(paperId, targetStatus) {
+  // First, fetch current status
+  const { data: currentPaper, error: fetchError } = await supabase
+    .from("exam_papers")
+    .select("status")
+    .eq("id", paperId)
+    .single();
+
+  if (fetchError) {
+    throw new Error("Paper not found!");
+  }
+
+  // Validate allowed transitions only
+  const allowedTransitions = {
+    "BoE-approved": "CoE-approved",
+    "CoE-approved": "Submitted",
+  };
+
+  if (allowedTransitions[currentPaper.status] !== targetStatus) {
+    throw new Error(
+      `Invalid rollback: Cannot change from ${currentPaper.status} to ${targetStatus}`
+    );
+  }
+
+  // Perform the rollback
+  const { data, error } = await supabase
+    .from("exam_papers")
+    .update({ status: targetStatus })
+    .eq("id", paperId)
+    .select()
+    .single(); // Return updated row
+
+  if (error) {
+    throw new Error("Paper status could not be rolled back!");
+  }
+
+  return data;
+}
+
 /**
  * Retrieves all departments in the institution.
  *

@@ -31,7 +31,7 @@ export const StyledHeader = styled(CommonRow)`
 `;
 
 export const StyledRow = styled(CommonRow)`
-  padding: 1.2rem 2.4rem;
+  padding: 1.6rem 2.4rem; /* ← Changed from 1.2rem to match header */
   background-color: var(--color-grey-0); /* Changed background to white */
 
   &:not(:last-child) {

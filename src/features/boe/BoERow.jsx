@@ -4,65 +4,74 @@ import styled from "styled-components";
 import Menus from "../../ui/Menus";
 import Table from "../../ui/Table";
 
-// Styled cell for subject code: large font, bold, gray
 const SubCode = styled.div`
-  font-size: 1.6rem;
-  font-weight: 600;
-  text-align: left;
-  color: var(--color-grey-600);
-  font-family: "Sono";
+  font-size: 1.4rem;
+  font-weight: 500;
+  color: var(--color-grey-700);
+  display: flex;
+  align-items: center;
 `;
 
-// Styled cell for subject name: bold headline
 const SubName = styled.div`
-  font-family: "Sono";
+  font-size: 1.4rem;
   font-weight: 600;
-  text-align: left;
+  color: var(--color-grey-800);
+  display: flex;
+  align-items: center;
 `;
 
-// Styled cell for semester: moderately bold and green-accented
 const Semester = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
-  text-align: left;
-  color: var(--color-green-700);
+  font-size: 1.4rem;
+  color: var(--color-grey-600); /* Changed from green */
+  display: flex;
+  align-items: center;
+  /* Removed justify-content: center - left align like others */
+  /* Removed text-align: center */
 `;
 
-// Status badge styling: color and background reflect status prop
-const Status = styled.div`
-  font-family: "Sono";
-  font-weight: 500;
-  padding: 0.2rem 1rem;
-  border-radius: var(--border-radius-sm);
-  text-align: left;
+// Wrap Status in a container div
+const StatusWrapper = styled.div`
+  display: flex;
+  align-items: center;
+`;
+
+const Status = styled.span`
+  display: inline-flex; /* ← Changed from default */
+  align-items: center;
+  justify-content: center;
   width: fit-content;
+  text-transform: uppercase;
+  font-size: 1.2rem;
+  font-weight: 600;
+  padding: 0.4rem 1.2rem;
+  border-radius: 100px;
   white-space: nowrap;
 
-  background-color: ${({ status }) =>
-    status === "Submitted"
-      ? "var(--color-green-100)"
-      : status === "CoE-approved"
-      ? "var(--color-yellow-100)"
-      : status === "BoE-approved"
-      ? "var(--color-indigo-100)"
-      : status === "Locked"
-      ? "var(--color-grey-300)"
-      : status === "Downloaded"
-      ? "var(--color-blue-100)"
-      : "var(--color-grey-100)"};
-
-  color: ${({ status }) =>
-    status === "Submitted"
+  color: ${(props) =>
+    props.status === "Submitted"
+      ? "var(--color-green-700)"
+      : props.status === "CoE-approved"
       ? "var(--color-yellow-700)"
-      : status === "CoE-approved"
-      ? "var(--color-yellow-700)"
-      : status === "BoE-approved"
-      ? "var(--color-indigo-700)"
-      : status === "Locked"
-      ? "var(--color-grey-800)"
-      : status === "Downloaded"
+      : props.status === "BoE-approved"
       ? "var(--color-blue-700)"
+      : props.status === "Locked"
+      ? "var(--color-red-700)"
+      : props.status === "Downloaded"
+      ? "var(--color-indigo-700)"
       : "var(--color-grey-700)"};
+
+  background-color: ${(props) =>
+    props.status === "Submitted"
+      ? "var(--color-green-100)"
+      : props.status === "CoE-approved"
+      ? "var(--color-yellow-100)"
+      : props.status === "BoE-approved"
+      ? "var(--color-blue-100)"
+      : props.status === "Locked"
+      ? "var(--color-red-100)"
+      : props.status === "Downloaded"
+      ? "var(--color-indigo-100)"
+      : "var(--color-grey-200)"};
 `;
 
 /**
@@ -95,9 +104,11 @@ function BoERow({
       {/* 3: Subject Name */}
       <SubName>{subject_name}</SubName>
       {/* 4: Semester */}
-      <Semester>{semester}</Semester>
+      <Semester>Sem-{semester}</Semester>
       {/* 5: Status badge (color-coded) */}
-      <Status status={status}>{status}</Status>
+      <StatusWrapper>
+        <Status status={status}>{status}</Status>
+      </StatusWrapper>
 
       {/* 6: Actions menu (more/vertical dots) */}
       <Menus.Menu>
